@@ -1,5 +1,5 @@
-import { useState, type ReactNode } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useEffect, useState, type ReactNode } from 'react'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { addDays, format, set as setHora } from 'date-fns'
 import { EstagioBadge } from '../components/EstagioBadge'
 import { CampoEditavel } from '../components/CampoEditavel'
@@ -10,7 +10,10 @@ import { MotivoPerdaModal } from '../components/MotivoPerdaModal'
 import { SEGMENTOS_SUGERIDOS } from '../components/CapturaRapida'
 import { useToast } from '../context/ToastContext'
 import { useDados } from '../hooks/useDados'
-import { atualizarLead, marcarRespondeu, mudarEstagio, obterLead, type AlteracaoLead, type Lead } from '../services/leads'
+import { atualizarLead, obterLead, type AlteracaoLead, type Lead } from '../services/leads'
+import { useAcoesLead } from '../hooks/useAcoesLead'
+import { useEnvio } from '../context/EnvioContext'
+import { acaoSugerida } from '../../shared/fila.ts'
 import { listarInteracoes, registrarInteracao, type Interacao } from '../services/interacoes'
 import { concluirTarefa, criarTarefa, listarTarefasDoLead, type Tarefa } from '../services/tarefas'
 import { listarServicos } from '../services/servicos'
@@ -64,6 +67,18 @@ export function LeadFicha() {
   const [modalPerda, setModalPerda] = useState(false)
   const [modalAgendar, setModalAgendar] = useState(false)
   const [modalNota, setModalNota] = useState(false)
+  const [params, setParams] = useSearchParams()
+  const acoes = useAcoesLead()
+  const { abrirMensagem } = useEnvio()
+  const leadCarregado = dados?.lead
+
+  // "Salvar e abordar agora" e links ?abordar=1 abrem a mensagem direto.
+  useEffect(() => {
+    if (params.get('abordar') === '1' && leadCarregado) {
+      setParams({}, { replace: true })
+      if (!leadCarregado.opt_out) abrirMensagem({ lead: leadCarregado, templateChave: acaoSugerida(leadCarregado).template_chave })
+    }
+  }, [params, leadCarregado, setParams, abrirMensagem])
 
   if (erro && !dados) return <div className="page"><Erro texto={erro} tentarDeNovo={() => void recarregar()} /></div>
   if (carregando || !dados) return <div className="page"><Skeleton linhas={5} altura={72} /></div>
@@ -89,31 +104,24 @@ export function LeadFicha() {
       setModalPerda(true)
       return
     }
-    const anterior = lead.estagio
+    const anterior = lead
     mutar((f) => ({ ...f!, lead: { ...f!.lead, estagio: e } }))
-    try {
-      await mudarEstagio(id, e, motivo)
-      toast(`Movido para ${ESTAGIO_ROTULO[e]}.`, {
-        desfazer: async () => {
-          await mudarEstagio(id, anterior)
-        },
-      })
-    } catch (err) {
-      mutar((f) => ({ ...f!, lead: { ...f!.lead, estagio: anterior } }))
-      toast(err instanceof Error ? err.message : 'Não foi possível mudar o estágio.', { tipo: 'erro' })
-    }
+    const ok = await acoes.trocarEstagio(anterior, e, motivo)
+    if (!ok) mutar((f) => ({ ...f!, lead: anterior }))
   }
 
   async function respondeu() {
-    mutar((f) => ({ ...f!, lead: { ...f!.lead, estagio: ['novo', 'abordado', 'sem_resposta', 'perdido'].includes(f!.lead.estagio) ? 'respondeu' : f!.lead.estagio } }))
-    try {
-      await marcarRespondeu(id)
-      toast(`${lead.empresa} respondeu. Tarefa "Responder" criada.`)
-    } catch (err) {
-      void recarregar()
-      toast(err instanceof Error ? err.message : 'Não foi possível registrar.', { tipo: 'erro' })
-    }
+    const anterior = lead
+    mutar((f) => ({
+      ...f!,
+      lead: { ...f!.lead, estagio: ['novo', 'abordado', 'sem_resposta', 'perdido'].includes(f!.lead.estagio) ? 'respondeu' : f!.lead.estagio },
+    }))
+    const ok = await acoes.respondeu(anterior)
+    if (!ok) mutar((f) => ({ ...f!, lead: anterior }))
   }
+
+  const sugerida = acaoSugerida(lead)
+  const ofereceAuditoria = lead.nota_auditoria !== null && ['novo', 'abordado', 'respondeu'].includes(lead.estagio) && !lead.opt_out
 
   const texto = (campo: keyof AlteracaoLead) => async (v: string) => salvarCampo({ [campo]: v.trim() || null } as AlteracaoLead)
 
@@ -151,16 +159,15 @@ export function LeadFicha() {
         </div>
 
         <div className="ficha-acoes">
-          <a
+          <button
+            type="button"
             className="btn btn-primary"
-            href={`https://wa.me/${lead.whatsapp}`}
-            target="agilize-wa"
-            rel="noopener"
-            aria-disabled={lead.opt_out}
-            onClick={(e) => lead.opt_out && e.preventDefault()}
+            disabled={lead.opt_out}
+            title={lead.opt_out ? 'Lead com opt-out: envio bloqueado' : undefined}
+            onClick={() => abrirMensagem({ lead, templateChave: sugerida.template_chave })}
           >
-            <Icon name="whatsapp" size={18} /> WhatsApp
-          </a>
+            <Icon name="whatsapp" size={18} /> {sugerida.tipo === 'mensagem' && sugerida.template_chave ? sugerida.rotulo : 'WhatsApp'}
+          </button>
           <button type="button" className="btn btn-ghost" onClick={() => void respondeu()}>
             <Icon name="check" size={18} /> Respondeu
           </button>
@@ -186,6 +193,17 @@ export function LeadFicha() {
             </button>
           ))}
         </div>
+
+        {ofereceAuditoria && (
+          <div className="aviso-em">
+            <p>
+              Auditoria registrada: nota <b className="num">{lead.nota_auditoria}</b>/100. Enviar para {lead.contato_nome?.split(' ')[0] || lead.empresa} agora?
+            </p>
+            <button type="button" className="btn btn-primary btn-sm" onClick={() => abrirMensagem({ lead, templateChave: 'auditoria' })}>
+              Enviar auditoria <span className="arrow">→</span>
+            </button>
+          </div>
+        )}
 
         {lead.proxima_acao_em && (
           <p className="ficha-proxima">

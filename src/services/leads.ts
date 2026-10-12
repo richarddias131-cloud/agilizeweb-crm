@@ -4,6 +4,7 @@ import type { Estagio } from '../../shared/dominio.ts'
 import { normalizarTelefone } from '../../shared/phone.ts'
 import { invalidar } from '../lib/cache'
 import { falhou, traduzirErro } from './erros'
+import type { Desfazer } from './envio'
 
 export type Lead = Tables<'leads'>
 export type NovoLead = TablesInsert<'leads'>
@@ -115,7 +116,13 @@ export async function adicionarTag(ids: string[], tag: string): Promise<void> {
   aoMudar()
 }
 
-export async function mudarEstagio(id: string, estagio: Estagio, motivoPerda?: string): Promise<Lead> {
+/** Muda o estágio e devolve o necessário para desfazer. */
+export async function mudarEstagio(
+  lead: Pick<Lead, 'id' | 'estagio' | 'motivo_perda' | 'proxima_acao' | 'proxima_acao_em'>,
+  estagio: Estagio,
+  motivoPerda?: string,
+): Promise<Desfazer> {
+  const id = lead.id
   const r = await supabase.rpc('mudar_estagio', {
     p_lead: id,
     p_estagio: estagio,
@@ -124,7 +131,16 @@ export async function mudarEstagio(id: string, estagio: Estagio, motivoPerda?: s
   if (r.error) throw traduzirErro(r.error)
   aoMudar()
   invalidar(`lead:${id}`)
-  return r.data
+  return {
+    leadId: id,
+    marco: r.data.updated_at,
+    anterior: {
+      estagio: lead.estagio,
+      motivo_perda: lead.motivo_perda,
+      proxima_acao: lead.proxima_acao,
+      proxima_acao_em: lead.proxima_acao_em,
+    },
+  }
 }
 
 export async function mudarEstagioVarios(ids: string[], estagio: Estagio, motivoPerda?: string): Promise<void> {
@@ -139,10 +155,24 @@ export async function mudarEstagioVarios(ids: string[], estagio: Estagio, motivo
   aoMudar()
 }
 
-export async function marcarRespondeu(id: string): Promise<void> {
-  const r = await supabase.rpc('marcar_respondeu', { p_lead: id })
+/** Botão "Respondeu": devolve o necessário para desfazer. */
+export async function marcarRespondeu(
+  lead: Pick<Lead, 'id' | 'estagio' | 'tentativas_sem_resposta' | 'proxima_acao' | 'proxima_acao_em' | 'ultima_resposta_em'>,
+): Promise<Desfazer> {
+  const r = await supabase.rpc('marcar_respondeu', { p_lead: lead.id })
   if (r.error) throw traduzirErro(r.error)
   aoMudar()
-  invalidar(`lead:${id}`)
+  invalidar(`lead:${lead.id}`)
   invalidar('tarefas')
+  return {
+    leadId: lead.id,
+    marco: (r.data as { marco: string }).marco,
+    anterior: {
+      estagio: lead.estagio,
+      tentativas_sem_resposta: lead.tentativas_sem_resposta,
+      proxima_acao: lead.proxima_acao,
+      proxima_acao_em: lead.proxima_acao_em,
+      ultima_resposta_em: lead.ultima_resposta_em,
+    },
+  }
 }

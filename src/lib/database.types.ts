@@ -701,6 +701,14 @@ export type Database = {
         }
         Returns: undefined
       }
+      desfazer_acao: {
+        Args: {
+          p_lead: string
+          p_marco: string
+          p_anterior: Json
+        }
+        Returns: undefined
+      }
       encerrar_cadencia: {
         Args: {
           p_lead: string
@@ -753,7 +761,7 @@ export type Database = {
           p_ator?: Database["public"]["Enums"]["ator_tipo"]
           p_ator_nome?: string
         }
-        Returns: string
+        Returns: Json
       }
       mudar_estagio: {
         Args: {
@@ -777,7 +785,7 @@ export type Database = {
           p_ator?: Database["public"]["Enums"]["ator_tipo"]
           p_ator_nome?: string
         }
-        Returns: string
+        Returns: Json
       }
     }
     Enums: {

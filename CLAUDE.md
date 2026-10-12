@@ -23,6 +23,13 @@ Supabase (Postgres + Auth + Realtime), PWA (vite-plugin-pwa), deploy no GitHub P
 - `supabase/migrations/` — SQL versionado; `supabase/seed.sql` — catálogo, templates, config.
 - `docs/` — API.md, openapi.yaml, grok-tools.json, AGENTE.md.
 
+## Regras de negócio (onde ficam)
+- **Fila Hoje:** `fila_hoje()` (SQL) entrega os candidatos; `shared/fila.ts` decide ação e template. Tela e `GET /fila/hoje` usam os dois.
+- **Cadência:** `shared/cadencia.ts` (`aposEnvio`, `deveEncerrar`). O resultado vai para a RPC `registrar_envio`.
+- **Ações rápidas:** RPCs `registrar_envio`, `marcar_respondeu`, `mudar_estagio` devolvem um *marco* (o `now()` da transação). `desfazer_acao(lead, marco, retrato)` reverte exatamente o que foi gravado (usado pelo toast "Desfazer").
+- **Ator:** as RPCs recebem `p_ator`/`p_ator_nome` (richard | agente | bridge). A interação de mudança de estágio é gravada por trigger.
+- **Tipos do banco:** `src/lib/database.types.ts`, no formato do `supabase gen types`. Atualize quando mudar uma migration.
+
 ## Identidade visual (seguir à risca)
 - Tokens em `src/styles/tokens.css`. Tema claro "Branco limpo" é o principal; escuro alternativo (claro/escuro/sistema, `localStorage` `agz-tema`).
 - Esmeralda (`--em`) **só** em botões primários, indicadores, foco, badges e detalhes. Nunca fundo de área grande. Texto esmeralda usa `--em-text`.

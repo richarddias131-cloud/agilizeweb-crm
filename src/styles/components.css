@@ -3,6 +3,7 @@
   display: grid;
   gap: 16px;
   grid-template-columns: 1fr;
+  align-items: start;
 }
 @media (min-width: 560px) {
   .grid-2 {
@@ -600,4 +601,412 @@
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
+}
+
+/* ---------- Chips (templates) ---------- */
+.chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+.chips::-webkit-scrollbar {
+  display: none;
+}
+.chip {
+  flex: none;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: none;
+  font-size: 0.85rem;
+  color: var(--muted);
+  transition: all var(--dur) var(--ease);
+}
+.chip:hover {
+  color: var(--ink);
+  border-color: var(--muted);
+}
+.chip[aria-checked='true'] {
+  background: var(--em-soft);
+  border-color: transparent;
+  color: var(--em-text);
+}
+.mensagem-texto {
+  min-height: 170px;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+/* ---------- Aviso esmeralda ---------- */
+.aviso-em {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--em) 45%, transparent);
+  background: color-mix(in srgb, var(--em) 7%, transparent);
+  font-size: 0.92rem;
+}
+
+/* ---------- Barra Enviei / Não enviei ---------- */
+.barra-envio {
+  position: fixed;
+  z-index: 150;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(var(--bottomnav-h) + 12px + env(safe-area-inset-bottom));
+  width: min(calc(100% - 24px), 560px);
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--em);
+  border-radius: var(--radius-lg);
+  background: var(--bg);
+  box-shadow: 0 18px 50px -20px rgb(0 0 0 / 0.35);
+  animation: toast-in 200ms var(--ease);
+}
+.barra-envio-texto {
+  font-size: 0.98rem;
+}
+.barra-envio-botoes {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 10px;
+}
+.barra-envio-botoes .btn {
+  width: 100%;
+}
+.barra-envio-proximo {
+  border-color: var(--rule);
+}
+@media (hover: none), (max-width: 599px) {
+  .barra-envio kbd {
+    display: none;
+  }
+}
+@media (min-width: 900px) {
+  .barra-envio {
+    bottom: 24px;
+    left: calc(50% + var(--sidebar-w) / 2);
+  }
+}
+.barra-envio ~ .toasts,
+body:has(.barra-envio) .toasts {
+  bottom: calc(var(--bottomnav-h) + 170px + env(safe-area-inset-bottom));
+}
+@media (min-width: 900px) {
+  body:has(.barra-envio) .toasts {
+    bottom: 180px;
+  }
+}
+
+/* ---------- Hoje ---------- */
+.progresso-dia {
+  display: grid;
+  gap: 10px;
+  padding: 16px 20px;
+}
+.progresso-numero {
+  color: var(--muted);
+}
+.progresso-numero b {
+  color: var(--ink);
+  font-size: 1.2rem;
+  font-weight: 400;
+}
+.bloco-destaque {
+  border-color: color-mix(in srgb, var(--em) 60%, transparent);
+}
+.bloco-titulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.05rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+.bloco-vazio {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px 18px;
+}
+.bloco-fila .rows {
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--rule);
+}
+.item-fila {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px 10px 20px;
+  min-height: 64px;
+}
+.item-tarefa {
+  padding-left: 8px;
+}
+.item-fila-info {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+  text-decoration: none;
+  color: inherit;
+}
+.item-fila-empresa {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.item-fila-sub {
+  font-size: 0.84rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.item-fila-sub a {
+  color: inherit;
+}
+.item-fila-estagio {
+  margin-top: 4px;
+}
+.item-fila-acoes {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+}
+@media (min-width: 700px) {
+  .item-fila-info {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+  }
+  .item-fila-empresa,
+  .item-fila-sub {
+    grid-column: 1;
+  }
+  .item-fila-estagio {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    margin: 0 8px;
+  }
+}
+
+/* ---------- Modo foco ---------- */
+.foco {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  overflow-y: auto;
+  outline: none;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  animation: modal-in 200ms var(--ease);
+}
+.foco-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+}
+.foco-progresso {
+  margin: 0 16px;
+}
+.foco-corpo,
+.foco-fim {
+  width: min(100%, 720px);
+  margin: 0 auto;
+  padding: 24px 16px 200px;
+  display: grid;
+  gap: 24px;
+  align-content: start;
+}
+.foco-fim {
+  justify-items: start;
+  padding-top: 15vh;
+}
+.foco-empresa {
+  font-size: clamp(2rem, 1.5rem + 2.5vw, 3rem);
+}
+.foco-acoes {
+  display: grid;
+  gap: 14px;
+}
+.foco-secundarias {
+  gap: 24px;
+}
+.ulink:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+@media (max-width: 699px) {
+  .item-fila-estagio {
+    display: none;
+  }
+}
+@media (max-width: 479px) {
+  .item-fila {
+    flex-wrap: wrap;
+    row-gap: 6px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+  .item-fila-info {
+    flex-basis: 100%;
+  }
+  .item-fila-acoes {
+    margin-left: auto;
+  }
+  .item-tarefa .item-fila-info {
+    flex-basis: 0;
+  }
+}
+
+/* ---------- Abas ---------- */
+.abas {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-bottom: 1px solid var(--rule);
+}
+.abas::-webkit-scrollbar {
+  display: none;
+}
+.aba {
+  flex: none;
+  position: relative;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+.aba[aria-selected='true'] {
+  color: var(--ink);
+}
+.aba[aria-selected='true']::after {
+  content: '';
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--em);
+}
+
+/* ---------- Configurações ---------- */
+.secao-config {
+  display: grid;
+  gap: 18px;
+}
+.secao-config > .segmented {
+  justify-self: start;
+}
+.cadencia-linha {
+  display: grid;
+  align-items: end;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 14px;
+}
+.input-sufixo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.input-sufixo .input {
+  min-width: 0;
+}
+.barra-salvar {
+  position: sticky;
+  bottom: calc(var(--bottomnav-h) + 12px + env(safe-area-inset-bottom));
+  display: flex;
+  justify-content: flex-end;
+}
+@media (min-width: 900px) {
+  .barra-salvar {
+    bottom: 16px;
+  }
+}
+.templates-layout {
+  display: grid;
+  gap: 16px;
+  align-items: start;
+}
+@media (min-width: 900px) {
+  .templates-layout {
+    grid-template-columns: 260px minmax(0, 1fr);
+  }
+}
+.templates-lista ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.template-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 52px;
+  padding: 0 16px;
+  border: 0;
+  background: none;
+  text-align: left;
+}
+.template-item > span:first-child {
+  flex: 1;
+}
+.template-item:hover {
+  background: var(--soft);
+}
+.template-item[aria-selected='true'] {
+  background: var(--soft);
+  box-shadow: inset 2px 0 0 var(--em);
+}
+.chips-wrap {
+  flex-wrap: wrap;
+  overflow: visible;
+}
+.chip.mono {
+  font-size: 0.78rem;
+}
+.previa {
+  display: grid;
+  gap: 8px;
+}
+.previa-balao {
+  justify-self: start;
+  max-width: 520px;
+  padding: 12px 14px;
+  border-radius: 14px 14px 14px 4px;
+  background: var(--soft);
+  border: 1px solid var(--rule);
+  white-space: pre-wrap;
+  font-size: 0.95rem;
+}
+.linha-servico {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  align-items: center;
+}
+@media (min-width: 900px) {
+  .linha-servico {
+    grid-template-columns: minmax(0, 2fr) 140px auto minmax(0, 1.2fr) auto auto;
+  }
 }

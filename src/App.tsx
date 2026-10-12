@@ -12,12 +12,19 @@ import { EmConstrucao } from './pages/EmConstrucao'
 import { Mais } from './pages/Mais'
 import { Leads } from './pages/Leads'
 import { LeadFicha } from './pages/LeadFicha'
+import { Hoje } from './pages/Hoje'
+import { Config } from './pages/Config'
+import { EnvioProvider } from './context/EnvioContext'
 
 function Protegida({ children }: { children: ReactNode }) {
   const { sessao, carregando } = useAuth()
   if (carregando) return <div className="tela-carregando" aria-busy="true" aria-label="Carregando" />
   if (!sessao) return <Navigate to="/login" replace />
-  return <CapturaProvider>{children}</CapturaProvider>
+  return (
+    <EnvioProvider>
+      <CapturaProvider>{children}</CapturaProvider>
+    </EnvioProvider>
+  )
 }
 
 function Rotas() {
@@ -31,17 +38,14 @@ function Rotas() {
           </Protegida>
         }
       >
-        <Route index element={<EmConstrucao eyebrow="01 / Hoje" titulo="Hoje" texto="A fila do dia chega na Fase 3." />} />
+        <Route index element={<Hoje />} />
         <Route path="leads" element={<Leads />} />
         <Route path="leads/:id" element={<LeadFicha />} />
         <Route path="funil" element={<EmConstrucao eyebrow="03 / Funil" titulo="Funil" texto="O kanban chega na Fase 5." />} />
         <Route path="vendas" element={<EmConstrucao eyebrow="04 / Vendas" titulo="Vendas" texto="O registro de vendas chega na Fase 5." />} />
         <Route path="painel" element={<EmConstrucao eyebrow="05 / Painel" titulo="Painel" texto="Os números do mês chegam na Fase 6." />} />
         <Route path="importar" element={<EmConstrucao eyebrow="06 / Importar" titulo="Importar CSV" texto="A importação chega na Fase 6." />} />
-        <Route
-          path="config"
-          element={<EmConstrucao eyebrow="07 / Ajustes" titulo="Configurações" texto="Catálogo, templates e cadência chegam nas próximas fases." />}
-        />
+        <Route path="config" element={<Config />} />
         <Route path="mais" element={<Mais />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
