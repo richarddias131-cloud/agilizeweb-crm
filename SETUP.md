@@ -55,4 +55,48 @@ Passo a passo para colocar o CRM no ar. Faça na ordem. Cada fase nova pode acre
 
 ## Parte 6 — API do Grok Bot *(vale a partir da Fase 4)*
 
-Os passos para publicar a Edge Function, gerar a chave do Grok e conectar o agente entram aqui na Fase 4.
+### Publicar a API (Edge Function)
+
+Escolha **um** dos caminhos.
+
+**Caminho A — pelo GitHub (automático a cada mudança):**
+
+20. No Supabase, clique na sua foto (canto superior direito) → **Account preferences → Access Tokens → Generate new token**. Dê o nome `github-actions` e copie o token.
+21. No GitHub, em **Settings → Secrets and variables → Actions**, crie:
+    - `SUPABASE_ACCESS_TOKEN` = o token do passo 20
+    - `SUPABASE_PROJECT_REF` = o código do projeto (o trecho `abcd1234` de `https://abcd1234.supabase.co`)
+22. Vá em **Actions → Deploy da API (Edge Function) → Run workflow**. Quando ficar verde, a API está no ar.
+
+**Caminho B — pelo seu computador:**
+
+20. No terminal, dentro da pasta do projeto:
+    ```bash
+    npx supabase login
+    npx supabase link --project-ref SEU_PROJECT_REF
+    npx supabase functions deploy api --no-verify-jwt
+    ```
+
+23. Confira abrindo no navegador: `https://SEU_PROJECT_REF.supabase.co/functions/v1/api/v1/health`. Deve aparecer `{"status":"ok",...}`.
+
+> O `--no-verify-jwt` é obrigatório: o agente entra com a chave própria (`agz_...`), não com o login do Supabase. A função usa a `service_role` só por dentro. Ela nunca sai do Supabase e não vai para o agente.
+
+### Gerar a chave do Grok
+
+24. No CRM, abra **Configurações → API e agente → Nova chave**. Nome: `Grok Bot`. Escopos: `leitura`, `escrita` e `relatorios` (deixe `envio` desligado por enquanto).
+25. Copie a chave (`agz_...`) **na hora**: ela aparece uma única vez. Guarde no gerenciador de senhas.
+26. (Opcional) Teste tudo de uma vez no terminal (precisa do `jq`):
+    ```bash
+    export AGZ_API="https://SEU_PROJECT_REF.supabase.co/functions/v1/api/v1"
+    export AGZ_CHAVE="agz_..."
+    bash scripts/testar-api.sh
+    ```
+    O script cria um lead de teste, prepara uma mensagem, registra uma nota, lê a fila e arquiva o lead.
+
+### Conectar o Grok Bot
+
+27. No Grok Bot (ou na plataforma onde ele roda), cole como **prompt de sistema** o bloco de texto do arquivo `docs/AGENTE.md`.
+28. Cadastre as ferramentas (function calling) com o conteúdo de `docs/grok-tools.json`. São 19 ferramentas, uma por ação. Em cada uma, o campo `x-http` diz qual rota da API chamar.
+29. Configure o executor das ferramentas com a base da API, o header `Authorization: Bearer agz_...` e um `Idempotency-Key` (UUID) em cada `POST`. Os detalhes estão no topo do `docs/AGENTE.md`. Se preferir n8n ou Postman, importe o `docs/openapi.yaml`.
+30. Peça ao Grok: "Leia a fila de hoje e me diga o que tem". As chamadas aparecem em **Configurações → API e agente → Registro do agente**, e as propostas dele aparecem no topo da tela **Hoje**, em "Para aprovar".
+
+**Botão de emergência:** em **Configurações → API e agente**, o interruptor **Pausar agente** bloqueia na hora todas as escritas do Grok.

@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { Logo } from './Logo'
 import { Icon } from './Icon'
@@ -5,9 +6,12 @@ import { ThemeToggle } from './ThemeToggle'
 import { NAV_CONFIG, NAV_MOBILE, NAV_PRINCIPAL } from './nav'
 import { sair } from '../services/auth'
 import { Fab, useCaptura } from './CapturaRapida'
+import { ouvirMudancas } from '../services/realtime'
 
 export function Layout() {
   const { abrir } = useCaptura()
+  // Propostas do agente e respostas do wa-bridge aparecem sem recarregar.
+  useEffect(() => ouvirMudancas(), [])
   return (
     <div className="app">
       <a className="skip-link" href="#conteudo">

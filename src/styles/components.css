@@ -1010,3 +1010,166 @@ body:has(.barra-envio) .toasts {
     grid-template-columns: minmax(0, 2fr) 140px auto minmax(0, 1.2fr) auto auto;
   }
 }
+
+/* ---------- Para aprovar ---------- */
+.aprovar-item {
+  display: grid;
+  gap: 10px;
+  padding: 16px 20px;
+}
+.aprovar-empresa {
+  font-weight: 500;
+  color: inherit;
+  text-decoration: none;
+}
+.aprovar-empresa:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--em);
+}
+.aprovar-justificativa {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.aprovar-justificativa .label {
+  margin-right: 6px;
+}
+.aprovar-botoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ---------- Interruptor ---------- */
+.interruptor {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  cursor: pointer;
+}
+.interruptor input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.interruptor span[aria-hidden] {
+  width: 48px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--rule);
+  position: relative;
+  transition: background var(--dur) var(--ease);
+}
+.interruptor span[aria-hidden]::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--bg);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.25);
+  transition: transform var(--dur) var(--ease);
+}
+.interruptor input:checked + span[aria-hidden] {
+  background: var(--em);
+}
+.interruptor input:checked + span[aria-hidden]::after {
+  transform: translateX(20px);
+}
+.interruptor input:focus-visible + span[aria-hidden] {
+  outline: 2px solid var(--em);
+  outline-offset: 3px;
+}
+.secao-alerta {
+  border-color: var(--danger);
+}
+
+/* ---------- Chaves e registro ---------- */
+.url-api {
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+}
+.lista-chaves {
+  margin: 0;
+  padding: 0;
+}
+.chave-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+}
+.chave-revogada {
+  opacity: 0.6;
+}
+.chave-mostrada {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--em);
+  background: color-mix(in srgb, var(--em) 7%, transparent);
+}
+.chave-mostrada code {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 0.85rem;
+  user-select: all;
+}
+.escopo {
+  align-items: flex-start;
+  padding: 6px 0;
+}
+.escopo input {
+  margin-top: 3px;
+}
+.tabela-rolagem {
+  overflow-x: auto;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.tabela th {
+  text-align: left;
+  font-family: var(--mono);
+  font-weight: 400;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+.tabela td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+.tabela tr:last-child td {
+  border-bottom: 0;
+}
+.tabela td.mono {
+  font-size: 0.78rem;
+}
+@media (max-width: 599px) {
+  .ocultar-celular {
+    display: none;
+  }
+}
+@media (hover: none), (max-width: 699px) {
+  .dica-teclado {
+    display: none;
+  }
+}

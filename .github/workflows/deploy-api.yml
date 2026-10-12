@@ -1,0 +1,34 @@
+name: Deploy da API (Edge Function)
+
+# Publica supabase/functions/api quando ela muda (ou manualmente).
+# Requer os Secrets SUPABASE_ACCESS_TOKEN e SUPABASE_PROJECT_REF (veja o SETUP.md).
+on:
+  push:
+    branches: [main]
+    paths: ['supabase/functions/**', 'shared/**']
+  workflow_dispatch:
+
+jobs:
+  testar-e-publicar:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Testes da API
+        working-directory: supabase/functions/api
+        run: deno test tests/
+      - uses: supabase/setup-cli@v1
+        if: env.SUPABASE_ACCESS_TOKEN != '' && env.SUPABASE_PROJECT_REF != ''
+        with:
+          version: latest
+      - name: Publicar
+        if: env.SUPABASE_ACCESS_TOKEN != '' && env.SUPABASE_PROJECT_REF != ''
+        run: supabase functions deploy api --project-ref "$SUPABASE_PROJECT_REF" --no-verify-jwt
+      - name: Aviso
+        if: env.SUPABASE_ACCESS_TOKEN == '' || env.SUPABASE_PROJECT_REF == ''
+        run: echo "::notice::Secrets SUPABASE_ACCESS_TOKEN/SUPABASE_PROJECT_REF ausentes — testes rodaram, publicação pulada."

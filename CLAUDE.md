@@ -7,7 +7,16 @@ Prioridade nº 1: **toda ação do dia a dia em 1 ou 2 toques**. Rápido > bonit
 - `npm run dev` — servidor local (precisa de `.env.local` com as chaves do Supabase)
 - `npm run build` — typecheck + build de produção (rode antes de todo commit)
 - `npm test` — testes (Vitest) de `src/` e `shared/`
-- Edge Function da API: `supabase/functions/api/` (Deno). Testes: `deno test` dentro dessa pasta.
+- `npm run sync:shared` — copia `shared/` para `supabase/functions/api/_shared/` (obrigatório após mudar `shared/` ou `database.types.ts`)
+- `npm run docs:api` — gera `docs/openapi.yaml` e `docs/grok-tools.json` a partir de `supabase/functions/api/openapi.ts`
+- API (Deno): `cd supabase/functions/api && deno test tests/ && deno check index.ts`
+- `npm test` falha se a cópia do `shared/` ou as docs geradas estiverem desatualizadas.
+
+## API para agentes (supabase/functions/api)
+- `app.ts`: pipeline (rota → chave agz_ por hash SHA-256 → limite 60/min via api_log → escopo → pausa → idempotência → handler → log).
+- `rotas/*.ts`: endpoints. `lib/negocio.ts`: regras (opt-out, prospecção fria, limite diário). Toda regra do agente é aplicada no servidor.
+- Acesso a dados só pela interface `Banco` (`lib/tipos.ts`): `banco_supabase.ts` (produção, service_role filtrando user_id) e `tests/banco_memoria.ts` (testes).
+- Novo endpoint = rota em `rotas/` + operação em `openapi.ts` (com `ferramenta` se o Grok usar) + teste + `npm run docs:api` + seção em `docs/API.md`.
 
 ## Stack
 Vite + React + TypeScript estrito, CSS puro com variáveis (sem Tailwind), `HashRouter`,

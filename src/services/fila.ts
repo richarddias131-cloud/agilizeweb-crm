@@ -2,6 +2,7 @@ import { supabase } from '../lib/supabase'
 import { configCadencia, montarFila, type Fila, type FilaBruta } from '../../shared/fila.ts'
 import { dataReativar } from '../../shared/cadencia.ts'
 import { traduzirErro } from './erros'
+import { gravarCache, lerCache } from '../lib/cache'
 
 async function buscarBruta(): Promise<FilaBruta> {
   const r = await supabase.rpc('fila_hoje', {})
@@ -22,4 +23,12 @@ export async function carregarFila(): Promise<Fila> {
     fila = montarFila(bruta)
   }
   return fila
+}
+
+export const CHAVE_FILA = 'fila:hoje'
+
+/** Atualização otimista da fila em cache (a tela Hoje reflete na hora). */
+export function mutarFila(fn: (f: Fila) => Fila): void {
+  const atual = lerCache<Fila>(CHAVE_FILA)
+  if (atual) gravarCache(CHAVE_FILA, fn(atual))
 }

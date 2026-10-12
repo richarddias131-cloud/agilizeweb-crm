@@ -39,7 +39,8 @@ export type AcaoPendenteFila = {
   expira_em: string
   created_at: string
   chave_nome: string | null
-  lead: { id: string; empresa: string; contato_nome: string | null; whatsapp: string; cidade: string; estagio: Estagio; opt_out: boolean } | null
+  criada_por: string | null
+  lead: LeadFila | null
 }
 
 export type FilaBruta = {

@@ -24,6 +24,8 @@ type Pendente = {
 export type AbrirMensagemOpcoes = {
   lead: LeadEnvio
   templateChave?: string | null
+  /** Texto já pronto (ex.: escrito pelo agente) — abre editável. */
+  textoInicial?: { texto: string; templateId: string | null }
   aoEnviar?: () => void
   proximo?: Proximo | null
 }

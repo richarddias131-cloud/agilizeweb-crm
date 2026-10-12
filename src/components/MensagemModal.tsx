@@ -7,18 +7,23 @@ import type { Template } from '../services/templates'
 import { VARIAVEL_DESCRICAO } from '../../shared/template.ts'
 
 /** Estado do editor de mensagem: template escolhido + texto (editável). */
-export function useEditorMensagem(lead: LeadEnvio | null, templateChaveInicial: string | null | undefined) {
+export function useEditorMensagem(
+  lead: LeadEnvio | null,
+  templateChaveInicial: string | null | undefined,
+  textoInicial?: { texto: string; templateId: string | null },
+) {
   const { templates, renderizar, templatePorChave } = useEnvio()
   // undefined = usar o template sugerido; null = texto livre; string = id escolhido.
-  const [escolhaId, setEscolhaId] = useState<string | null | undefined>(undefined)
-  const [texto, setTexto] = useState('')
-  const [editado, setEditado] = useState(false)
+  const [escolhaId, setEscolhaId] = useState<string | null | undefined>(textoInicial ? textoInicial.templateId : undefined)
+  const [texto, setTexto] = useState(textoInicial?.texto ?? '')
+  const [editado, setEditado] = useState(!!textoInicial)
 
   // Troca de lead (Modo foco): volta para a sugestão. Refetch de templates não apaga o que foi digitado.
   useEffect(() => {
+    if (textoInicial) return
     setEscolhaId(undefined)
     setEditado(false)
-  }, [lead?.id, templateChaveInicial])
+  }, [lead?.id, templateChaveInicial, textoInicial])
 
   const template: Template | null =
     escolhaId === undefined
@@ -103,7 +108,7 @@ export function EditorMensagem({ editor, idTexto = 'msg-texto' }: { editor: Edit
 export function MensagemModal({ opcoes, aoFechar }: { opcoes: AbrirMensagemOpcoes; aoFechar: () => void }) {
   const { destino, enviarAgora } = useEnvio()
   const { lead } = opcoes
-  const editor = useEditorMensagem(lead, opcoes.templateChave)
+  const editor = useEditorMensagem(lead, opcoes.templateChave, opcoes.textoInicial)
   const vazio = !editor.texto.trim()
 
   function enviar(d: 'web' | 'app') {
@@ -124,7 +129,7 @@ export function MensagemModal({ opcoes, aoFechar }: { opcoes: AbrirMensagemOpcoe
     <Modal
       aberto
       aoFechar={aoFechar}
-      eyebrow="WhatsApp"
+      eyebrow={opcoes.textoInicial ? 'Editar e aprovar' : 'WhatsApp'}
       titulo={lead.empresa}
       largura="larga"
       rodape={

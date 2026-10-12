@@ -1,0 +1,1859 @@
+openapi: "3.1.0"
+info:
+  title: API do CRM AgilizeWeb
+  version: "1.0.0"
+  description: "API para o Grok Bot (ou outro agente/automação) operar o CRM com segurança. JSON com campos em português; datas ISO 8601; valores como número. Erros sempre em { erro: { codigo, mensagem, detalhes } }. Todo POST aceita Idempotency-Key (24 h). Limite: 60 requisições/min por chave. Não existe DELETE."
+servers:
+  - url: https://SEU-PROJETO.supabase.co/functions/v1/api/v1
+tags:
+  - name: Leads
+  - name: Fila
+  - name: Mensagens
+  - name: Aprovação
+  - name: Tarefas
+  - name: Catálogo
+  - name: Vendas e métricas
+  - name: Sistema
+paths:
+  "/health":
+    get:
+      summary: Status da API
+      tags:
+        - Sistema
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  versao:
+                    type: string
+      security: []
+  "/openapi.json":
+    get:
+      summary: Esta especificação
+      tags:
+        - Sistema
+      responses:
+        "200":
+          description: OpenAPI 3.1
+      security: []
+  "/leads":
+    get:
+      summary: Listar leads
+      tags:
+        - Leads
+      responses:
+        "200":
+          description: Página de leads (mais recentes primeiro).
+          content:
+            "application/json":
+              schema:
+                type: object
+                required:
+                  - dados
+                  - proximo_cursor
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Lead"
+                  proximo_cursor:
+                    type:
+                      - string
+                      - "null"
+                    description: Null quando não há mais páginas.
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/Proibido"
+        "429":
+          $ref: "#/components/responses/Limite"
+      parameters:
+        - name: estagio
+          in: query
+          description: Filtra por estágio.
+          schema:
+            type: string
+            enum:
+              - novo
+              - abordado
+              - respondeu
+              - auditoria_enviada
+              - proposta_enviada
+              - negociacao
+              - ganho
+              - perdido
+              - sem_resposta
+        - name: cidade
+          in: query
+          description: Cidade exata.
+          schema:
+            type: string
+        - name: segmento
+          in: query
+          description: Segmento exato.
+          schema:
+            type: string
+        - name: tag
+          in: query
+          description: Leads que têm esta tag.
+          schema:
+            type: string
+        - name: busca
+          in: query
+          description: Busca em empresa, contato, cidade e telefone.
+          schema:
+            type: string
+        - name: sem_contato_ha_dias
+          in: query
+          description: Sem contato há pelo menos N dias (inclui nunca contatados).
+          schema:
+            type: integer
+            minimum: 0
+        - name: atualizado_desde
+          in: query
+          description: Só leads alterados desde esta data (ISO 8601).
+          schema:
+            type: string
+            format: date-time
+        - name: incluir_arquivados
+          in: query
+          description: true para incluir arquivados.
+          schema:
+            type: boolean
+        - name: limite
+          in: query
+          description: Itens por página (1 a 200, padrão 50).
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+        - name: cursor
+          in: query
+          description: Valor de "proximo_cursor" da página anterior.
+          schema:
+            type: string
+      security:
+        - chaveApi: []
+      x-escopo: leitura
+      x-ferramenta:
+        nome: listar_leads
+        descricao: Lista leads do CRM com filtros (estágio, cidade, segmento, tag, busca, sem contato há N dias). Use para encontrar leads para enriquecer ou acompanhar.
+    post:
+      summary: Criar ou atualizar lead (upsert pelo WhatsApp)
+      description: "Se o WhatsApp já existir, atualiza só os campos enviados e responde criado: false. Nunca reativa opt-out."
+      tags:
+        - Leads
+      responses:
+        "200":
+          description: Já existia; atualizado.
+          content:
+            "application/json":
+              schema:
+                type: object
+                properties:
+                  criado:
+                    const: false
+                  lead:
+                    $ref: "#/components/schemas/Lead"
+        "201":
+          description: Criado.
+          content:
+            "application/json":
+              schema:
+                type: object
+                properties:
+                  criado:
+                    const: true
+                  lead:
+                    $ref: "#/components/schemas/Lead"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/Proibido"
+        "422":
+          $ref: "#/components/responses/Invalido"
+        "429":
+          $ref: "#/components/responses/Limite"
+        "503":
+          $ref: "#/components/responses/Pausado"
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              type: object
+              properties:
+                empresa:
+                  type: string
+                  description: Nome da empresa.
+                whatsapp:
+                  type: string
+                  description: WhatsApp em qualquer formato; o servidor normaliza para 55DDDNUMERO.
+                  examples:
+                    - (19) 99999-9999
+                contato_nome:
+                  type:
+                    - string
+                    - "null"
+                  description: Nome do contato.
+                cidade:
+                  type: string
+                  description: Cidade.
+                uf:
+                  type:
+                    - string
+                    - "null"
+                  description: Sigla do estado.
+                  examples:
+                    - SP
+                segmento:
+                  type:
+                    - string
+                    - "null"
+                  description: "Segmento (ex.: Ótica, Estética automotiva)."
+                origem:
+                  type: string
+                  enum:
+                    - prospeccao_ativa
+                    - indicacao
+                    - instagram
+                    - site
+                    - importacao
+                    - agente
+                  description: "Padrão: agente."
+                link_google:
+                  type:
+                    - string
+                    - "null"
+                  description: Link do Perfil do Google / Maps.
+                site_atual:
+                  type:
+                    - string
+                    - "null"
+                  description: Site atual.
+                instagram:
+                  type:
+                    - string
+                    - "null"
+                  description: Instagram (@perfil ou link).
+                nota_auditoria:
+                  type:
+                    - integer
+                    - "null"
+                  minimum: 0
+                  maximum: 100
+                  description: Nota da auditoria do Perfil do Google.
+                servico_interesse:
+                  type:
+                    - string
+                    - "null"
+                  format: uuid
+                  description: Id de um serviço de GET /servicos.
+                valor_estimado:
+                  type:
+                    - number
+                    - "null"
+                  minimum: 0
+                  description: Valor em reais, como número (549.9).
+                proxima_acao:
+                  type:
+                    - string
+                    - "null"
+                  description: Próxima ação (texto curto).
+                proxima_acao_em:
+                  type:
+                    - string
+                    - "null"
+                  format: date-time
+                  description: Quando fazer a próxima ação.
+                tags:
+                  type: array
+                  items:
+                    type: string
+                observacoes:
+                  type:
+                    - string
+                    - "null"
+                  description: Observações livres.
+                opt_out:
+                  type: boolean
+                  const: true
+                  description: Só aceita true (marcar opt-out). Nunca reativa.
+              additionalProperties: false
+              required:
+                - empresa
+                - whatsapp
+      security:
+        - chaveApi: []
+      x-escopo: escrita
+      x-ferramenta:
+        nome: criar_ou_atualizar_lead
+        descricao: "Cadastra um lead novo ou atualiza um existente pelo WhatsApp (upsert). Obrigatórios: empresa e whatsapp. Use também para enriquecer um lead com segmento, links, nota da auditoria etc."
+  "/leads/{id}":
+    get:
+      summary: Lead completo com últimas 20 interações e tarefas abertas
+      tags:
+        - Leads
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                type: object
+                properties:
+                  lead:
+                    $ref: "#/components/schemas/Lead"
+                  interacoes:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Interacao"
+                  tarefas:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Tarefa"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/Proibido"
+        "404":
+          description: lead_nao_encontrado
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "429":
+          $ref: "#/components/responses/Limite"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Id do lead (uuid).
+          schema:
+            type: string
+            format: uuid
+      security:
+        - chaveApi: []
+      x-escopo: leitura
+      x-ferramenta:
+        nome: obter_lead
+        descricao: Traz um lead completo, com as últimas 20 interações (linha do tempo) e tarefas abertas. Use antes de escrever uma mensagem para entender o contexto.
+    patch:
+      summary: Editar campos do lead
+      tags:
+        - Leads
+      responses:
+        "200":
+          description: Lead atualizado.
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Lead"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/Proibido"
+        "404":
+          description: lead_nao_encontrado
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "409":
+          description: whatsapp_duplicado
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "422":
+          $ref: "#/components/responses/Invalido"
+        "429":
+          $ref: "#/components/responses/Limite"
+        "503":
+          $ref: "#/components/responses/Pausado"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Id do lead (uuid).
+          schema:
+            type: string
+            format: uuid
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              type: object
+              properties:
+                empresa:
+                  type: string
+                  description: Nome da empresa.
+                whatsapp:
+                  type: string
+                  description: WhatsApp em qualquer formato; o servidor normaliza para 55DDDNUMERO.
+                  examples:
+                    - (19) 99999-9999
+                contato_nome:
+                  type:
+                    - string
+                    - "null"
+                  description: Nome do contato.
+                cidade:
+                  type: string
+                  description: Cidade.
+                uf:
+                  type:
+                    - string
+                    - "null"
+                  description: Sigla do estado.
+                  examples:
+                    - SP
+                segmento:
+                  type:
+                    - string
+                    - "null"
+                  description: "Segmento (ex.: Ótica, Estética automotiva)."
+                origem:
+                  type: string
+                  enum:
+                    - prospeccao_ativa
+                    - indicacao
+                    - instagram
+                    - site
+                    - importacao
+                    - agente
+                  description: "Padrão: agente."
+                link_google:
+                  type:
+                    - string
+                    - "null"
+                  description: Link do Perfil do Google / Maps.
+                site_atual:
+                  type:
+                    - string
+                    - "null"
+                  description: Site atual.
+                instagram:
+                  type:
+                    - string
+                    - "null"
+                  description: Instagram (@perfil ou link).
+                nota_auditoria:
+                  type:
+                    - integer
+                    - "null"
+                  minimum: 0
+                  maximum: 100
+                  description: Nota da auditoria do Perfil do Google.
+                servico_interesse:
+                  type:
+                    - string
+                    - "null"
+                  format: uuid
+                  description: Id de um serviço de GET /servicos.
+                valor_estimado:
+                  type:
+                    - number
+                    - "null"
+                  minimum: 0
+                  description: Valor em reais, como número (549.9).
+                proxima_acao:
+                  type:
+                    - string
+                    - "null"
+                  description: Próxima ação (texto curto).
+                proxima_acao_em:
+                  type:
+                    - string
+                    - "null"
+                  format: date-time
+                  description: Quando fazer a próxima ação.
+                tags:
+                  type: array
+                  items:
+                    type: string
+                observacoes:
+                  type:
+                    - string
+                    - "null"
+                  description: Observações livres.
+                opt_out:
+                  type: boolean
+                  const: true
+                  description: Só aceita true (marcar opt-out). Nunca reativa.
+              additionalProperties: false
+      security:
+        - chaveApi: []
+      x-escopo: escrita
+      x-ferramenta:
+        nome: editar_lead
+        descricao: Edita campos de um lead (enriquecimento). Não muda estágio nem arquiva; opt_out só pode ser marcado como true.
+  "/leads/por-whatsapp/{numero}":
+    get:
+      summary: Buscar lead pelo WhatsApp
+      tags:
+        - Leads
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Lead"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/Proibido"
+        "404":
+          description: lead_nao_encontrado
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "429":
+          $ref: "#/components/responses/Limite"
+      parameters:
+        - name: numero
+          in: path
+          required: true
+          description: Número em qualquer formato.
+          schema:
+            type: string
+      security:
+        - chaveApi: []
+      x-escopo: leitura
+      x-ferramenta:
+        nome: buscar_lead_por_whatsapp
+        descricao: Encontra o lead dono de um número de WhatsApp (qualquer formato). Use antes de cadastrar para evitar duplicados.
+  "/leads/{id}/estagio":
+    post:
+      summary: Mudar estágio
+      description: motivo_perda é obrigatório em perdido. Mudar para ganho vira ação pendente (202) para o Richard aprovar.
+      tags:
+        - Leads
+      responses:
+        "200":
+          description: Aplicado.
+          content:
+            "application/json":
+              schema:
+                type: object
+                properties:
+                  aplicado:
+                    const: true
+                  lead:
+                    $ref: "#/components/schemas/Lead"
+        "202":
+          description: Virou ação pendente (ganho).
+          content:
+            "application/json":
+              schema:
+                type: object
+                properties:
+                  aplicado:
+                    const: false
+                  acao_pendente:
+                    $ref: "#/components/schemas/AcaoPendente"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/Proibido"
+        "404":
+          description: lead_nao_encontrado
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "422":
+          $ref: "#/components/responses/Invalido"
+        "429":
+          $ref: "#/components/responses/Limite"
+        "503":
+          $ref: "#/components/responses/Pausado"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Id do lead (uuid).
+          schema:
+            type: string
+            format: uuid
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              type: object
+              required:
+                - estagio
+              properties:
+                estagio:
+                  type: string
+                  enum:
+                    - novo
+                    - abordado
+                    - respondeu
+                    - auditoria_enviada
+                    - proposta_enviada
+                    - negociacao
+                    - ganho
+                    - perdido
+                    - sem_resposta
+                motivo_perda:
+                  type: string
+                  description: Obrigatório para perdido.
+                justificativa:
+                  type: string
+                  description: Usada quando vira ação pendente (ganho).
+      security:
+        - chaveApi: []
+      x-escopo: escrita
+      x-ferramenta:
+        nome: mudar_estagio
+        descricao: "Move o lead no funil. Perdido exige motivo_perda. Ganho não é aplicado direto: vira proposta para o Richard aprovar."
+  "/leads/{id}/arquivar":
+    post:
+      summary: Arquivar lead (não existe exclusão)
+      tags:
+        - Leads
+      responses:
+        "200":
+          description: Arquivado.
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Lead"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/Proibido"
+        "404":
+          description: lead_nao_encontrado
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "422":
+          $ref: "#/components/responses/Invalido"
+        "429":
+          $ref: "#/components/responses/Limite"
+        "503":
+          $ref: "#/components/responses/Pausado"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Id do lead (uuid).
+          schema:
+            type: string
+            format: uuid
+      security:
+        - chaveApi: []
+      x-escopo: escrita
+      x-ferramenta:
+        nome: arquivar_lead
+        descricao: Arquiva um lead (duplicado, fora do perfil). Nada é apagado.
+  "/leads/{id}/interacoes":
+    post:
+      summary: Registrar interação
+      description: whatsapp_enviado aplica a cadência (como o "Enviei"); whatsapp_recebido tem o mesmo efeito do "Respondeu".
+      tags:
+        - Leads
+      responses:
+        "201":
+          description: Registrada.
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/Proibido"
+        "404":
+          description: lead_nao_encontrado
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "422":
+          $ref: "#/components/responses/Invalido"
+        "429":
+          $ref: "#/components/responses/Limite"
+        "503":
+          $ref: "#/components/responses/Pausado"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Id do lead (uuid).
+          schema:
+            type: string
+            format: uuid
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              type: object
+              required:
+                - tipo
+              properties:
+                tipo:
+                  type: string
+                  enum:
+                    - nota
+                    - ligacao
+                    - auditoria
+                    - proposta
+                    - whatsapp_enviado
+                    - whatsapp_recebido
+                conteudo:
+                  type: string
+                  description: Texto da interação.
+                ocorreu_em:
+                  type: string
+                  format: date-time
+                  description: "Padrão: agora."
+      security:
+        - chaveApi: []
+      x-escopo: escrita
+      x-ferramenta:
+        nome: registrar_interacao
+        descricao: Anota algo na linha do tempo do lead (nota, ligação, auditoria, proposta) ou registra mensagem enviada/recebida fora do CRM.
+  "/leads/{id}/respondeu":
+    post:
+      summary: Lead respondeu
+      description: "Mesmo efeito do botão \"Respondeu\": estágio respondeu, zera tentativas, cancela follow-ups e cria a tarefa \"Responder {empresa}\"."
+      tags:
+        - Leads
+      responses:
+        "200":
+          description: OK
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/Proibido"
+        "404":
+          description: lead_nao_encontrado
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "422":
+          $ref: "#/components/responses/Invalido"
+        "429":
+          $ref: "#/components/responses/Limite"
+        "503":
+          $ref: "#/components/responses/Pausado"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Id do lead (uuid).
+          schema:
+            type: string
+            format: uuid
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: false
+        content:
+          "application/json":
+            schema:
+              type: object
+              properties:
+                conteudo:
+                  type: string
+                  description: Texto recebido (opcional).
+      security:
+        - chaveApi: []
+      x-escopo: escrita
+      x-ferramenta:
+        nome: marcar_respondeu
+        descricao: "Registra que o lead respondeu: interrompe a cadência e cria a tarefa \"Responder\" para o Richard."
+  "/fila/hoje":
+    get:
+      summary: Fila do dia (a mesma da tela Hoje)
+      tags:
+        - Fila
+      responses:
+        "200":
+          description: Fila ordenada com ação sugerida e template indicado.
+          content:
+            "application/json":
+              schema:
+                type: object
+                properties:
+                  progresso:
+                    type: object
+                    properties:
+                      feitas:
+                        type: integer
+                      meta:
+                        type: integer
+                  para_aprovar:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AcaoPendente"
+                  responderam:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ItemFila"
+                  followups:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ItemFila"
+                  novos:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ItemFila"
+                  tarefas:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Tarefa"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/Proibido"
+        "429":
+          $ref: "#/components/responses/Limite"
+      security:
+        - chaveApi: []
+      x-escopo: leitura
+      x-ferramenta:
+        nome: fila_de_hoje
+        descricao: "Fila do dia: quem respondeu, follow-ups vencidos, leads novos até a meta e tarefas — com ação sugerida e mensagem já renderizada. Comece o dia por aqui."
+  "/templates":
+    get:
+      summary: Templates ativos
+      tags:
+        - Catálogo
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                type: object
+                required:
+                  - dados
+                  - proximo_cursor
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Template"
+                  proximo_cursor:
+                    type:
+                      - string
+                      - "null"
+                    description: Null quando não há mais páginas.
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/Proibido"
+        "429":
+          $ref: "#/components/responses/Limite"
+      security:
+        - chaveApi: []
+      x-escopo: leitura
+      x-ferramenta:
+        nome: listar_templates
+        descricao: Lista os templates de mensagem ativos (id, chave, nome e corpo com variáveis).
+  "/servicos":
+    get:
+      summary: Catálogo e preços (somente leitura)
+      tags:
+        - Catálogo
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                type: object
+                required:
+                  - dados
+                  - proximo_cursor
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Servico"
+                  proximo_cursor:
+                    type:
+                      - string
+                      - "null"
+                    description: Null quando não há mais páginas.
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/Proibido"
+        "429":
+          $ref: "#/components/responses/Limite"
+      security:
+        - chaveApi: []
+      x-escopo: leitura
+      x-ferramenta:
+        nome: listar_servicos
+        descricao: Catálogo de serviços e preços da AgilizeWeb. O agente nunca altera preços.
+  "/mensagens/preparar":
+    post:
+      summary: Preparar mensagem (não envia)
+      tags:
+        - Mensagens
+      responses:
+        "200":
+          description: Mensagem renderizada e links.
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/MensagemPreparada"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          description: lead_opt_out
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "404":
+          description: lead_nao_encontrado
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "429":
+          $ref: "#/components/responses/Limite"
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              type: object
+              required:
+                - lead_id
+              properties:
+                lead_id:
+                  type: string
+                  format: uuid
+                  description: Lead.
+                template_id:
+                  type: string
+                  format: uuid
+                  description: Template (ou use template_chave).
+                template_chave:
+                  type: string
+                  description: "Ex.: abordagem, followup1, auditoria."
+                texto:
+                  type: string
+                  description: Texto livre com variáveis (em vez de template).
+      security:
+        - chaveApi: []
+      x-escopo: leitura
+      x-ferramenta:
+        nome: preparar_mensagem
+        descricao: Renderiza a mensagem para um lead a partir de um template (ou texto livre) e devolve o texto final e os links do WhatsApp. Não envia nada.
+  "/mensagens/enviar":
+    post:
+      summary: Enviar mensagem (ou propor para aprovação)
+      description: "Envia pelo wa-bridge só se: a chave tem o escopo envio, o lead já respondeu antes, o Richard ligou \"permitir envio direto após resposta\" e o bridge está online. Em qualquer outro caso (incluindo toda prospecção fria) cria uma ação pendente e responde 202."
+      tags:
+        - Mensagens
+      responses:
+        "201":
+          description: Enviado pelo bridge.
+        "202":
+          description: Virou ação pendente.
+          content:
+            "application/json":
+              schema:
+                type: object
+                properties:
+                  enviado:
+                    const: false
+                  motivo:
+                    type: string
+                    enum:
+                      - prospeccao_fria
+                      - sem_escopo_envio
+                      - envio_direto_desligado
+                      - bridge_offline
+                  acao_pendente:
+                    $ref: "#/components/schemas/AcaoPendente"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          description: lead_opt_out
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "404":
+          description: lead_nao_encontrado
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "422":
+          $ref: "#/components/responses/Invalido"
+        "429":
+          $ref: "#/components/responses/Limite"
+        "503":
+          $ref: "#/components/responses/Pausado"
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              type: object
+              required:
+                - lead_id
+              properties:
+                lead_id:
+                  type: string
+                  format: uuid
+                  description: Lead.
+                template_id:
+                  type: string
+                  format: uuid
+                  description: Template.
+                template_chave:
+                  type: string
+                  description: Chave do template.
+                texto:
+                  type: string
+                  description: Texto final (em vez de template).
+                justificativa:
+                  type: string
+                  description: Por que enviar agora (aparece para o Richard).
+      security:
+        - chaveApi: []
+      x-escopo: escrita
+      x-ferramenta:
+        nome: enviar_mensagem
+        descricao: "Pede o envio de uma mensagem ao lead. Prospecção fria nunca sai direto: vira proposta na fila \"Para aprovar\" do Richard (resposta 202). Sempre inclua uma justificativa."
+  "/acoes-pendentes":
+    post:
+      summary: Propor ação para o Richard aprovar
+      tags:
+        - Aprovação
+      responses:
+        "201":
+          description: Proposta criada.
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/AcaoPendente"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/Proibido"
+        "422":
+          $ref: "#/components/responses/Invalido"
+        "429":
+          $ref: "#/components/responses/Limite"
+        "503":
+          $ref: "#/components/responses/Pausado"
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              type: object
+              required:
+                - tipo
+                - justificativa
+              properties:
+                tipo:
+                  type: string
+                  enum:
+                    - enviar_mensagem
+                    - mudar_estagio
+                    - criar_venda
+                    - outro
+                lead_id:
+                  type: string
+                  format: uuid
+                  description: Obrigatório exceto para "outro".
+                payload:
+                  type: object
+                  description: "enviar_mensagem: { texto }; mudar_estagio: { estagio, motivo_perda? }; criar_venda: { itens, forma_pagamento? }."
+                justificativa:
+                  type: string
+                  description: Por que o Richard deveria aprovar.
+                expira_em_horas:
+                  type: number
+                  minimum: 1
+                  maximum: 168
+                  description: Padrão 48.
+      security:
+        - chaveApi: []
+      x-escopo: escrita
+      x-ferramenta:
+        nome: propor_acao
+        descricao: Propõe uma ação para o Richard aprovar em 1 toque (mensagem, mudança de estágio, venda ou outra). Sempre explique a justificativa.
+  "/acoes-pendentes/{id}":
+    get:
+      summary: Status de uma proposta
+      tags:
+        - Aprovação
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/AcaoPendente"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/Proibido"
+        "404":
+          description: acao_nao_encontrado
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "429":
+          $ref: "#/components/responses/Limite"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Id da ação pendente.
+          schema:
+            type: string
+            format: uuid
+      security:
+        - chaveApi: []
+      x-escopo: leitura
+      x-ferramenta:
+        nome: status_da_proposta
+        descricao: Consulta se uma proposta foi aprovada, rejeitada, expirou ou ainda está pendente.
+  "/tarefas":
+    get:
+      summary: Listar tarefas
+      tags:
+        - Tarefas
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                type: object
+                required:
+                  - dados
+                  - proximo_cursor
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Tarefa"
+                  proximo_cursor:
+                    type:
+                      - string
+                      - "null"
+                    description: Null quando não há mais páginas.
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/Proibido"
+        "429":
+          $ref: "#/components/responses/Limite"
+      parameters:
+        - name: lead_id
+          in: query
+          description: Só de um lead.
+          schema:
+            type: string
+            format: uuid
+        - name: abertas
+          in: query
+          description: false para incluir concluídas (padrão true).
+          schema:
+            type: boolean
+        - name: limite
+          in: query
+          description: Itens por página (1 a 200, padrão 50).
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+        - name: cursor
+          in: query
+          description: Valor de "proximo_cursor" da página anterior.
+          schema:
+            type: string
+      security:
+        - chaveApi: []
+      x-escopo: leitura
+      x-ferramenta:
+        nome: listar_tarefas
+        descricao: Lista tarefas (abertas por padrão), opcionalmente de um lead.
+    post:
+      summary: Criar tarefa
+      tags:
+        - Tarefas
+      responses:
+        "201":
+          description: Criada.
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Tarefa"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/Proibido"
+        "422":
+          $ref: "#/components/responses/Invalido"
+        "429":
+          $ref: "#/components/responses/Limite"
+        "503":
+          $ref: "#/components/responses/Pausado"
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              type: object
+              required:
+                - titulo
+              properties:
+                titulo:
+                  type: string
+                  description: O que fazer.
+                vence_em:
+                  type: string
+                  format: date-time
+                  description: "Padrão: agora."
+                lead_id:
+                  type: string
+                  format: uuid
+                  description: Lead (opcional).
+      security:
+        - chaveApi: []
+      x-escopo: escrita
+      x-ferramenta:
+        nome: criar_tarefa
+        descricao: "Cria uma tarefa para o Richard (ex.: ligar, conferir algo), com vencimento."
+  "/tarefas/{id}":
+    patch:
+      summary: Editar ou concluir tarefa
+      tags:
+        - Tarefas
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Tarefa"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/Proibido"
+        "404":
+          description: tarefa_nao_encontrado
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "422":
+          $ref: "#/components/responses/Invalido"
+        "429":
+          $ref: "#/components/responses/Limite"
+        "503":
+          $ref: "#/components/responses/Pausado"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Id da tarefa.
+          schema:
+            type: string
+            format: uuid
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              type: object
+              properties:
+                titulo:
+                  type: string
+                vence_em:
+                  type: string
+                  format: date-time
+                  description: ""
+                concluida:
+                  type: boolean
+      security:
+        - chaveApi: []
+      x-escopo: escrita
+      x-ferramenta:
+        nome: atualizar_tarefa
+        descricao: "Edita título/vencimento ou marca uma tarefa como concluída (concluida: true)."
+components:
+  securitySchemes:
+    chaveApi:
+      type: http
+      scheme: bearer
+      bearerFormat: agz_<chave>
+      description: Chave gerada em Configurações → API e agente.
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: Mesma chave em até 24 h devolve a mesma resposta sem duplicar nada. Use um UUID por operação.
+      schema:
+        type: string
+        maxLength: 200
+  responses:
+    NaoAutenticado:
+      description: nao_autenticado / chave_invalida
+      content:
+        "application/json":
+          schema:
+            $ref: "#/components/schemas/Erro"
+    Proibido:
+      description: escopo_insuficiente / lead_opt_out
+      content:
+        "application/json":
+          schema:
+            $ref: "#/components/schemas/Erro"
+    Invalido:
+      description: dados_invalidos (veja detalhes.campos)
+      content:
+        "application/json":
+          schema:
+            $ref: "#/components/schemas/Erro"
+    Limite:
+      description: limite_requisicoes / limite_diario (header Retry-After)
+      content:
+        "application/json":
+          schema:
+            $ref: "#/components/schemas/Erro"
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+    Pausado:
+      description: agente_pausado
+      content:
+        "application/json":
+          schema:
+            $ref: "#/components/schemas/Erro"
+  schemas:
+    Erro:
+      type: object
+      required:
+        - erro
+      properties:
+        erro:
+          type: object
+          required:
+            - codigo
+            - mensagem
+            - detalhes
+          properties:
+            codigo:
+              type: string
+              description: "Código estável (ex.: lead_opt_out)."
+            mensagem:
+              type: string
+              description: O que corrigir, em português.
+            detalhes:
+              type: object
+    Lead:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Id do lead.
+        empresa:
+          type: string
+        contato_nome:
+          type:
+            - string
+            - "null"
+        whatsapp:
+          type: string
+          description: "Normalizado: 55DDDNUMERO."
+        cidade:
+          type: string
+        uf:
+          type:
+            - string
+            - "null"
+        segmento:
+          type:
+            - string
+            - "null"
+        origem:
+          type: string
+        link_google:
+          type:
+            - string
+            - "null"
+        site_atual:
+          type:
+            - string
+            - "null"
+        instagram:
+          type:
+            - string
+            - "null"
+        nota_auditoria:
+          type:
+            - integer
+            - "null"
+        servico_interesse:
+          type:
+            - string
+            - "null"
+          format: uuid
+        valor_estimado:
+          type:
+            - number
+            - "null"
+        estagio:
+          type: string
+          enum:
+            - novo
+            - abordado
+            - respondeu
+            - auditoria_enviada
+            - proposta_enviada
+            - negociacao
+            - ganho
+            - perdido
+            - sem_resposta
+        motivo_perda:
+          type:
+            - string
+            - "null"
+        proxima_acao:
+          type:
+            - string
+            - "null"
+        proxima_acao_em:
+          type:
+            - string
+            - "null"
+          format: date-time
+        ultimo_contato_em:
+          type:
+            - string
+            - "null"
+          format: date-time
+        ultima_resposta_em:
+          type:
+            - string
+            - "null"
+          format: date-time
+          description: Null = nunca respondeu (prospecção fria).
+        tentativas_sem_resposta:
+          type: integer
+        opt_out:
+          type: boolean
+        arquivado:
+          type: boolean
+        tags:
+          type: array
+          items:
+            type: string
+        observacoes:
+          type:
+            - string
+            - "null"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    LeadEntrada:
+      type: object
+      properties:
+        empresa:
+          type: string
+          description: Nome da empresa.
+        whatsapp:
+          type: string
+          description: WhatsApp em qualquer formato; o servidor normaliza para 55DDDNUMERO.
+          examples:
+            - (19) 99999-9999
+        contato_nome:
+          type:
+            - string
+            - "null"
+          description: Nome do contato.
+        cidade:
+          type: string
+          description: Cidade.
+        uf:
+          type:
+            - string
+            - "null"
+          description: Sigla do estado.
+          examples:
+            - SP
+        segmento:
+          type:
+            - string
+            - "null"
+          description: "Segmento (ex.: Ótica, Estética automotiva)."
+        origem:
+          type: string
+          enum:
+            - prospeccao_ativa
+            - indicacao
+            - instagram
+            - site
+            - importacao
+            - agente
+          description: "Padrão: agente."
+        link_google:
+          type:
+            - string
+            - "null"
+          description: Link do Perfil do Google / Maps.
+        site_atual:
+          type:
+            - string
+            - "null"
+          description: Site atual.
+        instagram:
+          type:
+            - string
+            - "null"
+          description: Instagram (@perfil ou link).
+        nota_auditoria:
+          type:
+            - integer
+            - "null"
+          minimum: 0
+          maximum: 100
+          description: Nota da auditoria do Perfil do Google.
+        servico_interesse:
+          type:
+            - string
+            - "null"
+          format: uuid
+          description: Id de um serviço de GET /servicos.
+        valor_estimado:
+          type:
+            - number
+            - "null"
+          minimum: 0
+          description: Valor em reais, como número (549.9).
+        proxima_acao:
+          type:
+            - string
+            - "null"
+          description: Próxima ação (texto curto).
+        proxima_acao_em:
+          type:
+            - string
+            - "null"
+          format: date-time
+          description: Quando fazer a próxima ação.
+        tags:
+          type: array
+          items:
+            type: string
+        observacoes:
+          type:
+            - string
+            - "null"
+          description: Observações livres.
+        opt_out:
+          type: boolean
+          const: true
+          description: Só aceita true (marcar opt-out). Nunca reativa.
+      additionalProperties: false
+    Interacao:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ""
+        lead_id:
+          type: string
+          format: uuid
+          description: ""
+        tipo:
+          type: string
+          enum:
+            - whatsapp_enviado
+            - whatsapp_recebido
+            - ligacao
+            - nota
+            - auditoria
+            - proposta
+            - mudanca_estagio
+        conteudo:
+          type:
+            - string
+            - "null"
+        ocorreu_em:
+          type: string
+          format: date-time
+        ator:
+          type: string
+          enum:
+            - richard
+            - agente
+            - bridge
+        ator_nome:
+          type:
+            - string
+            - "null"
+    Tarefa:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ""
+        lead_id:
+          type:
+            - string
+            - "null"
+          format: uuid
+        titulo:
+          type: string
+        vence_em:
+          type: string
+          format: date-time
+        concluida_em:
+          type:
+            - string
+            - "null"
+          format: date-time
+        origem:
+          type: string
+          enum:
+            - manual
+            - cadencia
+            - agente
+    Template:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ""
+        chave:
+          type:
+            - string
+            - "null"
+          description: Identificador fixo (abordagem, followup1, followup2, ultima, auditoria, proposta_kit, pos_venda).
+        nome:
+          type: string
+        estagio_alvo:
+          type:
+            - string
+            - "null"
+          enum:
+            - novo
+            - abordado
+            - respondeu
+            - auditoria_enviada
+            - proposta_enviada
+            - negociacao
+            - ganho
+            - perdido
+            - sem_resposta
+        corpo:
+          type: string
+          description: Texto com variáveis {{nome}}, {{empresa}}, {{cidade}}, {{segmento}}, {{nota}}, {{servico}}, {{preco}}, {{assinatura}}.
+    Servico:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ""
+        nome:
+          type: string
+        preco:
+          type: number
+        recorrente:
+          type: boolean
+        preco_mensal:
+          type:
+            - number
+            - "null"
+        ativo:
+          type: boolean
+    AcaoPendente:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ""
+        tipo:
+          type: string
+          enum:
+            - enviar_mensagem
+            - mudar_estagio
+            - criar_venda
+            - outro
+        lead_id:
+          type:
+            - string
+            - "null"
+          format: uuid
+        payload:
+          type: object
+        justificativa:
+          type:
+            - string
+            - "null"
+        status:
+          type: string
+          enum:
+            - pendente
+            - aprovada
+            - rejeitada
+            - expirada
+        decidida_em:
+          type:
+            - string
+            - "null"
+          format: date-time
+        expira_em:
+          type: string
+          format: date-time
+    MensagemPreparada:
+      type: object
+      properties:
+        lead_id:
+          type: string
+          format: uuid
+          description: ""
+        template_id:
+          type:
+            - string
+            - "null"
+          format: uuid
+        texto:
+          type: string
+          description: Mensagem final renderizada.
+        faltando:
+          type: array
+          items:
+            type: string
+          description: Variáveis sem valor no lead.
+        link_wa_me:
+          type: string
+        link_whatsapp_web:
+          type: string
+        prospeccao_fria:
+          type: boolean
+          description: true = o lead nunca respondeu; envio direto é proibido.
+    ItemFila:
+      type: object
+      properties:
+        bloco:
+          type: string
+          enum:
+            - responderam
+            - followups
+            - novos
+        lead:
+          $ref: "#/components/schemas/Lead"
+        acao_sugerida:
+          type: string
+          description: "Ex.: Abordar, Follow-up 2, Enviar auditoria."
+        tipo_acao:
+          type: string
+          enum:
+            - mensagem
+            - abrir
+        template:
+          type:
+            - object
+            - "null"
+          properties:
+            id:
+              type: string
+            chave:
+              type: string
+            nome:
+              type: string
+        mensagem_sugerida:
+          type:
+            - string
+            - "null"
+          description: Template indicado já renderizado.
+        prospeccao_fria:
+          type: boolean
+    Venda:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ""
+        lead_id:
+          type: string
+          format: uuid
+          description: ""
+        itens:
+          type: array
+          items:
+            type: object
+            properties:
+              servico_id:
+                type: string
+              nome:
+                type: string
+              qtd:
+                type: integer
+              preco:
+                type: number
+        valor_total:
+          type: number
+        forma_pagamento:
+          type:
+            - string
+            - "null"
+        status:
+          type: string
+          enum:
+            - aguardando
+            - pago
+            - cancelado
+        manutencao_mensal:
+          type: boolean
+        valor_mensal:
+          type: number
+        fechada_em:
+          type: string
+          format: date-time
