@@ -4,8 +4,10 @@ import { Icon } from './Icon'
 import { ThemeToggle } from './ThemeToggle'
 import { NAV_CONFIG, NAV_MOBILE, NAV_PRINCIPAL } from './nav'
 import { sair } from '../services/auth'
+import { Fab, useCaptura } from './CapturaRapida'
 
 export function Layout() {
+  const { abrir } = useCaptura()
   return (
     <div className="app">
       <a className="skip-link" href="#conteudo">
@@ -16,6 +18,9 @@ export function Layout() {
         <NavLink to="/" className="sidebar-logo" aria-label="Ir para Hoje">
           <Logo />
         </NavLink>
+        <button type="button" className="btn btn-primary sidebar-novo" onClick={abrir}>
+          <Icon name="plus" size={18} /> Novo lead <kbd className="nav-kbd nav-kbd-em">N</kbd>
+        </button>
         <nav className="sidebar-nav">
           {NAV_PRINCIPAL.map((item) => (
             <NavLink key={item.to} to={item.to} end={item.to === '/'} className="nav-item">
@@ -49,6 +54,8 @@ export function Layout() {
       <main id="conteudo" className="main" tabIndex={-1}>
         <Outlet />
       </main>
+
+      <Fab />
 
       <nav className="bottomnav" aria-label="Navegação">
         {NAV_MOBILE.map((item) => (

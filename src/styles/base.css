@@ -212,6 +212,9 @@ button {
 /* Link com sublinhado esmeralda que preenche no hover (.ulink do site) */
 .ulink {
   position: relative;
+  justify-self: start;
+  align-self: start;
+  gap: 6px;
   display: inline-flex;
   align-items: center;
   min-height: 44px;
