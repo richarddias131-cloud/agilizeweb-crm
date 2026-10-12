@@ -763,6 +763,14 @@ export type Database = {
         }
         Returns: Json
       }
+      metricas_resumo: {
+        Args: {
+          p_user?: string
+          p_de?: string
+          p_ate?: string
+        }
+        Returns: Json
+      }
       mudar_estagio: {
         Args: {
           p_lead: string
@@ -786,6 +794,20 @@ export type Database = {
           p_ator_nome?: string
         }
         Returns: Json
+      }
+      registrar_venda: {
+        Args: {
+          p_lead: string
+          p_itens: Json
+          p_forma_pagamento?: string
+          p_status?: string
+          p_manutencao_mensal?: boolean
+          p_valor_mensal?: number
+          p_fechada_em?: string
+          p_ator?: Database["public"]["Enums"]["ator_tipo"]
+          p_ator_nome?: string
+        }
+        Returns: Database["public"]["Tables"]["vendas"]["Row"]
       }
     }
     Enums: {

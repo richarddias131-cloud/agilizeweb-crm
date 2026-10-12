@@ -4,7 +4,7 @@ import { createClient, type PostgrestError, type SupabaseClient } from 'npm:@sup
 import type { Database } from './_shared/database.types.ts'
 import type { FilaBruta } from './_shared/fila.ts'
 import { ErroApi, erros } from './lib/erros.ts'
-import type { AlteracaoLead, AtorCtx, Banco, FiltrosLeads, FiltrosTarefas, NovoLead, NovoLog, Tarefa } from './lib/tipos.ts'
+import type { AlteracaoLead, AtorCtx, Banco, FiltrosLeads, FiltrosTarefas, FiltrosVendas, NovoLead, NovoLog, Tarefa } from './lib/tipos.ts'
 
 function falha(e: PostgrestError): never {
   const m = e.message ?? ''
@@ -208,5 +208,19 @@ export class BancoSupabase implements Banco {
   }
   async filaHoje(userId: string) {
     return ok(await this.db.rpc('fila_hoje', { p_user: userId })) as unknown as FilaBruta
+  }
+
+  async listarVendas(userId: string, f: FiltrosVendas) {
+    let q = this.db.from('vendas').select('*').eq('user_id', userId)
+    if (f.de) q = q.gte('fechada_em', f.de)
+    if (f.ate) q = q.lt('fechada_em', f.ate)
+    if (f.status) q = q.eq('status', f.status)
+    if (f.apos) q = q.or(`fechada_em.lt.${f.apos.fechada_em},and(fechada_em.eq.${f.apos.fechada_em},id.lt.${f.apos.id})`)
+    return ok(await q.order('fechada_em', { ascending: false }).order('id', { ascending: false }).limit(f.limite))
+  }
+  async metricas(userId: string, de: string | null, ate: string | null) {
+    const r = await this.db.rpc('metricas_resumo', { p_user: userId, ...(de ? { p_de: de } : {}), ...(ate ? { p_ate: ate } : {}) })
+    if (r.error?.message.includes('periodo_invalido')) throw erros.validacao({ ate: '"ate" precisa ser depois de "de".' })
+    return ok(r) as unknown as Record<string, unknown>
   }
 }

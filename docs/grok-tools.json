@@ -870,5 +870,78 @@
       "rota": "/tarefas/{id}",
       "escopo": "escrita"
     }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "listar_vendas",
+      "description": "Lista vendas por período e status. [GET /vendas]",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "de": {
+            "type": "string",
+            "description": "Início (ISO 8601)."
+          },
+          "ate": {
+            "type": "string",
+            "description": "Fim (ISO 8601)."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "aguardando",
+              "pago",
+              "cancelado"
+            ],
+            "description": "aguardando, pago ou cancelado."
+          },
+          "limite": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 200,
+            "description": "Itens por página (1 a 200, padrão 50)."
+          },
+          "cursor": {
+            "type": "string",
+            "description": "Valor de \"proximo_cursor\" da página anterior."
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    "x-http": {
+      "metodo": "GET",
+      "rota": "/vendas",
+      "escopo": "leitura"
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "resumo_de_metricas",
+      "description": "Números do período: funil, taxa de resposta, abordagens por dia, receita do mês, receita recorrente, motivos de perda e segmentos que mais respondem. Use para o resumo do dia. [GET /metricas/resumo]",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "de": {
+            "type": "string",
+            "description": "Início (ISO 8601). Padrão: início do mês."
+          },
+          "ate": {
+            "type": "string",
+            "description": "Fim (ISO 8601). Padrão: agora."
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    "x-http": {
+      "metodo": "GET",
+      "rota": "/metricas/resumo",
+      "escopo": "relatorios"
+    }
   }
 ]

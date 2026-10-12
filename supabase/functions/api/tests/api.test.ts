@@ -255,3 +255,25 @@ Deno.test('paginação por cursor', async () => {
   igual(p3.corpo.proximo_cursor, null)
   igual((await chamar('GET', '/leads?cursor=lixo')).status, 422)
 })
+
+Deno.test('vendas e métricas: escopos, período e paginação', async () => {
+  const { chamar, banco } = await cenario({ escopos: ['leitura'] })
+  const l = banco.novoLead()
+  const t = (d: number) => new Date(Date.now() - d * 86_400_000).toISOString()
+  for (const [d, status] of [[1, 'pago'], [2, 'aguardando'], [40, 'pago']] as const) {
+    banco.vendasL.push({ id: crypto.randomUUID(), user_id: USER, lead_id: l.id, itens: [], valor_total: 549.9, forma_pagamento: 'Pix', status, manutencao_mensal: false, valor_mensal: 0, fechada_em: t(d), created_at: t(d), updated_at: t(d) })
+  }
+  const todas = await chamar('GET', '/vendas')
+  igual(todas.status, 200)
+  igual(todas.corpo.dados.length, 3)
+  igual(typeof todas.corpo.dados[0].valor_total, 'number')
+  igual((await chamar('GET', `/vendas?de=${encodeURIComponent(t(10))}&status=pago`)).corpo.dados.length, 1)
+  igual((await chamar('GET', '/vendas?status=xpto')).status, 422)
+  igual((await chamar('GET', `/vendas?de=${encodeURIComponent(t(1))}&ate=${encodeURIComponent(t(5))}`)).status, 422)
+  // métricas exigem o escopo relatorios
+  igual((await chamar('GET', '/metricas/resumo')).corpo.erro.codigo, 'escopo_insuficiente')
+  const comRel = await banco.criarChave(['relatorios'])
+  const m = await chamar('GET', '/metricas/resumo', { chave: comRel })
+  igual(m.status, 200)
+  igual(m.corpo.receita_periodo.paga, 1099.8)
+})

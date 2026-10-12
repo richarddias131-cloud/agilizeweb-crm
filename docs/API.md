@@ -196,6 +196,22 @@ curl -X PATCH "$AGZ_API/tarefas/<id>" -H "Authorization: Bearer $AGZ_CHAVE" -H "
   -d '{"concluida":true}'
 ```
 
+### Vendas e métricas
+
+**Vendas por período e status** (escopo `leitura`). O agente consulta vendas mas não as registra; para isso, ele propõe `criar_venda`.
+
+```bash
+curl "$AGZ_API/vendas?de=2026-10-01T00:00:00-03:00&status=pago" -H "Authorization: Bearer $AGZ_CHAVE"
+```
+
+**Resumo de métricas** (escopo `relatorios`). O padrão é do início do mês até agora.
+
+```bash
+curl "$AGZ_API/metricas/resumo?de=2026-10-01T00:00:00-03:00&ate=2026-10-13T00:00:00-03:00" -H "Authorization: Bearer $AGZ_CHAVE"
+```
+
+Resposta: `funil` (retrato atual por estágio, com quantidade e valor estimado), `taxa_resposta` (abordados no período e quantos responderam), `abordagens_por_dia`, `receita_periodo`, `receita_mes`, `receita_recorrente` (manutenções ativas), `motivos_perda` e `segmentos` (taxa de resposta por segmento). É a mesma função SQL que alimenta o Painel.
+
 ---
 
 ## Regras de segurança (aplicadas no servidor)

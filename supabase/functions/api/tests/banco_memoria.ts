@@ -1,5 +1,5 @@
 // Banco em memória para os testes da API (imita as RPCs e regras do Postgres).
-import type { AcaoPendente, ApiChave, AtorCtx, Banco, Config, FiltrosLeads, FiltrosTarefas, Interacao, Lead, NovoLead, NovoLog, Servico, Tarefa, Template } from '../lib/tipos.ts'
+import type { AcaoPendente, ApiChave, AtorCtx, Banco, Config, FiltrosLeads, FiltrosTarefas, FiltrosVendas, Interacao, Lead, NovoLead, NovoLog, Servico, Tarefa, Template, Venda } from '../lib/tipos.ts'
 import type { Estagio } from '../_shared/dominio.ts'
 import type { FilaBruta, LeadFila } from '../_shared/fila.ts'
 import { sha256Hex } from '../lib/util.ts'
@@ -21,6 +21,7 @@ export class BancoMemoria implements Banco {
   templatesL: Template[] = []
   servicosL: Servico[] = []
   acoes: AcaoPendente[] = []
+  vendasL: Venda[] = []
   agora = () => new Date()
 
   /** Cria uma chave e devolve o texto completo (agz_...). */
@@ -210,5 +211,15 @@ export class BancoMemoria implements Banco {
       novos_total: meus.filter((l) => l.estagio === 'novo').length,
       tarefas: [],
     }
+  }
+  async listarVendas(userId: string, f: FiltrosVendas) {
+    return this.vendasL
+      .filter((v) => v.user_id === userId && (!f.de || v.fechada_em >= f.de) && (!f.ate || v.fechada_em < f.ate) && (!f.status || v.status === f.status))
+      .sort((a, b) => b.fechada_em.localeCompare(a.fechada_em))
+      .slice(0, f.limite)
+  }
+  async metricas(userId: string, de: string | null, ate: string | null) {
+    const v = this.vendasL.filter((x) => x.user_id === userId)
+    return { periodo: { de, ate }, receita_periodo: { paga: v.filter((x) => x.status === 'pago').reduce((t, x) => t + Number(x.valor_total), 0) } }
   }
 }

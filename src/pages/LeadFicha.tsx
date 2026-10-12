@@ -8,6 +8,7 @@ import { Icon, type IconName } from '../components/Icon'
 import { Modal } from '../components/Modal'
 import { MotivoPerdaModal } from '../components/MotivoPerdaModal'
 import { SEGMENTOS_SUGERIDOS } from '../components/CapturaRapida'
+import { VendaModal } from '../components/VendaModal'
 import { useToast } from '../context/ToastContext'
 import { useDados } from '../hooks/useDados'
 import { atualizarLead, obterLead, type AlteracaoLead, type Lead } from '../services/leads'
@@ -17,6 +18,7 @@ import { acaoSugerida } from '../../shared/fila.ts'
 import { listarInteracoes, registrarInteracao, type Interacao } from '../services/interacoes'
 import { concluirTarefa, criarTarefa, listarTarefasDoLead, type Tarefa } from '../services/tarefas'
 import { listarServicos } from '../services/servicos'
+import { vendasDoLead, type Venda, type ItemVenda } from '../services/vendas'
 import {
   ESTAGIOS,
   ESTAGIO_ROTULO,
@@ -30,11 +32,11 @@ import {
 import { formatarTelefone } from '../../shared/phone.ts'
 import { dataHora, haQuanto, moeda, quando } from '../lib/formato'
 
-type Ficha = { lead: Lead; interacoes: Interacao[]; tarefas: Tarefa[] }
+type Ficha = { lead: Lead; interacoes: Interacao[]; tarefas: Tarefa[]; vendas: Venda[] }
 
 async function carregarFicha(id: string): Promise<Ficha> {
-  const [lead, interacoes, tarefas] = await Promise.all([obterLead(id), listarInteracoes(id), listarTarefasDoLead(id)])
-  return { lead, interacoes, tarefas }
+  const [lead, interacoes, tarefas, vendas] = await Promise.all([obterLead(id), listarInteracoes(id), listarTarefasDoLead(id), vendasDoLead(id)])
+  return { lead, interacoes, tarefas, vendas }
 }
 
 const ICONE_INTERACAO: Record<TipoInteracao, IconName> = {
@@ -67,6 +69,7 @@ export function LeadFicha() {
   const [modalPerda, setModalPerda] = useState(false)
   const [modalAgendar, setModalAgendar] = useState(false)
   const [modalNota, setModalNota] = useState(false)
+  const [modalVenda, setModalVenda] = useState(false)
   const [params, setParams] = useSearchParams()
   const acoes = useAcoesLead()
   const { abrirMensagem } = useEnvio()
@@ -74,6 +77,10 @@ export function LeadFicha() {
 
   // "Salvar e abordar agora" e links ?abordar=1 abrem a mensagem direto.
   useEffect(() => {
+    if (params.get('venda') === '1' && leadCarregado) {
+      setParams({}, { replace: true })
+      setModalVenda(true)
+    }
     if (params.get('abordar') === '1' && leadCarregado) {
       setParams({}, { replace: true })
       if (!leadCarregado.opt_out) abrirMensagem({ lead: leadCarregado, templateChave: acaoSugerida(leadCarregado).template_chave })
@@ -83,7 +90,7 @@ export function LeadFicha() {
   if (erro && !dados) return <div className="page"><Erro texto={erro} tentarDeNovo={() => void recarregar()} /></div>
   if (carregando || !dados) return <div className="page"><Skeleton linhas={5} altura={72} /></div>
 
-  const { lead, interacoes, tarefas } = dados
+  const { lead, interacoes, tarefas, vendas } = dados
 
   /** Salva um campo com atualização otimista. */
   async function salvarCampo(alteracao: AlteracaoLead) {
@@ -102,6 +109,10 @@ export function LeadFicha() {
     if (e === lead.estagio) return
     if (e === 'perdido' && !motivo) {
       setModalPerda(true)
+      return
+    }
+    if (e === 'ganho') {
+      setModalVenda(true)
       return
     }
     const anterior = lead
@@ -214,6 +225,23 @@ export function LeadFicha() {
 
       <div className="ficha-colunas">
         <section className="stack">
+          {vendas.length > 0 && (
+            <div className="card">
+              <div className="card-cabecalho"><span className="eyebrow">Vendas</span></div>
+              <ul className="rows" role="list">
+                {vendas.map((v) => (
+                  <li key={v.id} className="tarefa">
+                    <span className="spacer">
+                      {((Array.isArray(v.itens) ? v.itens : []) as unknown as ItemVenda[]).map((i) => i.nome).join(' + ')}
+                      {v.manutencao_mensal && <span className="muted"> · manutenção {moeda(Number(v.valor_mensal))}/mês</span>}
+                    </span>
+                    <span className="num">{moeda(Number(v.valor_total))}</span>
+                    <span className={`badge ${v.status === 'pago' ? 'badge-em' : v.status === 'cancelado' ? 'badge-danger' : ''}`}>{v.status}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           {tarefas.length > 0 && (
             <div className="card">
               <div className="card-cabecalho"><span className="eyebrow">Tarefas abertas</span></div>
@@ -358,6 +386,7 @@ export function LeadFicha() {
         </section>
       </div>
 
+      <VendaModal aberto={modalVenda} lead={lead} aoFechar={() => setModalVenda(false)} />
       <MotivoPerdaModal
         aberto={modalPerda}
         empresa={lead.empresa}

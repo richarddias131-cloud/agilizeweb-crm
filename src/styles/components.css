@@ -1173,3 +1173,219 @@ body:has(.barra-envio) .toasts {
     display: none;
   }
 }
+
+/* ---------- Funil ---------- */
+.page-larga {
+  max-width: none;
+}
+.kanban {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(240px, 1fr);
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  align-items: start;
+  min-height: 60vh;
+}
+.coluna {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 240px;
+  padding: 12px;
+  border-radius: var(--radius);
+  background: var(--soft);
+  border: 1px dashed transparent;
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.coluna-sobre {
+  border-color: var(--em);
+  background: color-mix(in srgb, var(--em) 8%, var(--soft));
+}
+.coluna-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.coluna-titulo {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.coluna-ganho .coluna-titulo {
+  color: var(--em-text);
+}
+.coluna-soma {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.coluna-cartoes {
+  display: grid;
+  gap: 8px;
+}
+.cartao {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--rule);
+  background: var(--bg);
+  cursor: grab;
+  transition: border-color var(--dur) var(--ease);
+  touch-action: manipulation;
+}
+.cartao:hover {
+  border-color: var(--muted);
+}
+.cartao-sobreposto {
+  cursor: grabbing;
+  border-color: var(--em);
+  box-shadow: 0 16px 40px -18px rgb(0 0 0 / 0.4);
+  transform: rotate(1.5deg);
+}
+.arrastando {
+  opacity: 0.35;
+}
+.cartao-empresa {
+  font-weight: 500;
+  color: inherit;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.cartao-empresa:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--em);
+}
+.cartao-sub {
+  font-size: 0.8rem;
+}
+.cartao-rodape {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.78rem;
+}
+.cartao-rodape .mono {
+  font-size: 0.7rem;
+}
+.abas-funil {
+  margin: 0;
+  padding: 2px 0;
+}
+.abas-funil .estagio-pill .num {
+  margin-left: 4px;
+  opacity: 0.7;
+}
+.lista-funil {
+  margin: 0;
+  padding: 0;
+}
+.select-mover {
+  width: auto;
+  max-width: 150px;
+  flex: none;
+  min-height: 40px;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  border-radius: 999px;
+}
+
+/* ---------- Vendas ---------- */
+.indicadores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+}
+.indicador {
+  display: grid;
+  gap: 6px;
+  padding: 16px 18px;
+}
+.indicador-valor {
+  font-size: 1.5rem;
+  font-weight: 300;
+  letter-spacing: -0.03em;
+}
+.indicador-destaque .indicador-valor {
+  color: var(--em-text);
+}
+.seletor-mes {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  padding: 2px;
+}
+.seletor-mes-rotulo {
+  min-width: 150px;
+  text-align: center;
+  font-size: 0.92rem;
+}
+.btn-icon:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.linha-venda-valor {
+  font-weight: 500;
+  white-space: nowrap;
+}
+.venda-cancelada {
+  opacity: 0.55;
+}
+.venda-cancelada .linha-venda-valor {
+  text-decoration: line-through;
+}
+.venda-servicos {
+  overflow: hidden;
+}
+.venda-servico {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+}
+.venda-servico.marcado {
+  background: color-mix(in srgb, var(--em) 6%, transparent);
+}
+.qtd {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+}
+.qtd .btn-icon {
+  width: 36px;
+  min-height: 36px;
+  font-size: 1.1rem;
+}
+.qtd .num {
+  min-width: 20px;
+  text-align: center;
+}
+.venda-total {
+  margin-right: auto;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.venda-total b {
+  font-size: 1.3rem;
+  font-weight: 400;
+}
+
+.lista-funil .item-fila {
+  flex-wrap: nowrap;
+}
+.lista-funil .item-fila-info {
+  flex-basis: auto;
+}
+.lista-funil .select-mover {
+  max-width: 128px;
+}

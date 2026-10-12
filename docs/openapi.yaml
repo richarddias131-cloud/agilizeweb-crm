@@ -1313,6 +1313,110 @@ paths:
       x-ferramenta:
         nome: atualizar_tarefa
         descricao: "Edita título/vencimento ou marca uma tarefa como concluída (concluida: true)."
+  "/vendas":
+    get:
+      summary: Vendas por período e status
+      tags:
+        - Vendas e métricas
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                type: object
+                required:
+                  - dados
+                  - proximo_cursor
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Venda"
+                  proximo_cursor:
+                    type:
+                      - string
+                      - "null"
+                    description: Null quando não há mais páginas.
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/Proibido"
+        "429":
+          $ref: "#/components/responses/Limite"
+      parameters:
+        - name: de
+          in: query
+          description: Início (ISO 8601).
+          schema:
+            type: string
+            format: date-time
+        - name: ate
+          in: query
+          description: Fim (ISO 8601).
+          schema:
+            type: string
+            format: date-time
+        - name: status
+          in: query
+          description: aguardando, pago ou cancelado.
+          schema:
+            type: string
+            enum:
+              - aguardando
+              - pago
+              - cancelado
+        - name: limite
+          in: query
+          description: Itens por página (1 a 200, padrão 50).
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+        - name: cursor
+          in: query
+          description: Valor de "proximo_cursor" da página anterior.
+          schema:
+            type: string
+      security:
+        - chaveApi: []
+      x-escopo: leitura
+      x-ferramenta:
+        nome: listar_vendas
+        descricao: Lista vendas por período e status.
+  "/metricas/resumo":
+    get:
+      summary: Resumo de métricas
+      tags:
+        - Vendas e métricas
+      responses:
+        "200":
+          description: Funil, taxa de resposta, abordagens por dia, receitas, motivos de perda e segmentos.
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/Proibido"
+        "429":
+          $ref: "#/components/responses/Limite"
+      parameters:
+        - name: de
+          in: query
+          description: "Início (ISO 8601). Padrão: início do mês."
+          schema:
+            type: string
+            format: date-time
+        - name: ate
+          in: query
+          description: "Fim (ISO 8601). Padrão: agora."
+          schema:
+            type: string
+            format: date-time
+      security:
+        - chaveApi: []
+      x-escopo: relatorios
+      x-ferramenta:
+        nome: resumo_de_metricas
+        descricao: "Números do período: funil, taxa de resposta, abordagens por dia, receita do mês, receita recorrente, motivos de perda e segmentos que mais respondem. Use para o resumo do dia."
 components:
   securitySchemes:
     chaveApi:

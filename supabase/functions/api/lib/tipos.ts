@@ -110,6 +110,9 @@ export interface Banco {
   marcarRespondeu(leadId: string, conteudo: string | null, ator: AtorCtx): Promise<{ id: string; marco: string }>
   encerrarCadencia(leadId: string, reativarEm: string, ator: AtorCtx): Promise<void>
   filaHoje(userId: string): Promise<FilaBruta>
+
+  listarVendas(userId: string, f: FiltrosVendas): Promise<Venda[]>
+  metricas(userId: string, de: string | null, ate: string | null): Promise<Record<string, unknown>>
 }
 
 export type Deps = {

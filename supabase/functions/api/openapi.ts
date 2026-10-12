@@ -514,6 +514,26 @@ export function especificacaoOpenApi(servidor = 'https://SEU-PROJETO.supabase.co
           ferramenta: { nome: 'atualizar_tarefa', descricao: 'Edita título/vencimento ou marca uma tarefa como concluída (concluida: true).' },
         }),
       },
+      '/vendas': {
+        get: op({
+          summary: 'Vendas por período e status',
+          tags: ['Vendas e métricas'],
+          escopo: 'leitura',
+          parameters: [q('de', 'Início (ISO 8601).', { type: 'string', format: 'date-time' }), q('ate', 'Fim (ISO 8601).', { type: 'string', format: 'date-time' }), q('status', 'aguardando, pago ou cancelado.', { type: 'string', enum: ['aguardando', 'pago', 'cancelado'] }), ...paginacao],
+          responses: { '200': resp('OK', lista('Venda')), ...ERROS_COMUNS },
+          ferramenta: { nome: 'listar_vendas', descricao: 'Lista vendas por período e status.' },
+        }),
+      },
+      '/metricas/resumo': {
+        get: op({
+          summary: 'Resumo de métricas',
+          tags: ['Vendas e métricas'],
+          escopo: 'relatorios',
+          parameters: [q('de', 'Início (ISO 8601). Padrão: início do mês.', { type: 'string', format: 'date-time' }), q('ate', 'Fim (ISO 8601). Padrão: agora.', { type: 'string', format: 'date-time' })],
+          responses: { '200': resp('Funil, taxa de resposta, abordagens por dia, receitas, motivos de perda e segmentos.'), ...ERROS_COMUNS },
+          ferramenta: { nome: 'resumo_de_metricas', descricao: 'Números do período: funil, taxa de resposta, abordagens por dia, receita do mês, receita recorrente, motivos de perda e segmentos que mais respondem. Use para o resumo do dia.' },
+        }),
+      },
     },
     components: {
       securitySchemes: {

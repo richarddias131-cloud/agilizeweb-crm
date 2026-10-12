@@ -14,6 +14,8 @@ import { Leads } from './pages/Leads'
 import { LeadFicha } from './pages/LeadFicha'
 import { Hoje } from './pages/Hoje'
 import { Config } from './pages/Config'
+import { Funil } from './pages/Funil'
+import { Vendas } from './pages/Vendas'
 import { EnvioProvider } from './context/EnvioContext'
 
 function Protegida({ children }: { children: ReactNode }) {
@@ -41,8 +43,8 @@ function Rotas() {
         <Route index element={<Hoje />} />
         <Route path="leads" element={<Leads />} />
         <Route path="leads/:id" element={<LeadFicha />} />
-        <Route path="funil" element={<EmConstrucao eyebrow="03 / Funil" titulo="Funil" texto="O kanban chega na Fase 5." />} />
-        <Route path="vendas" element={<EmConstrucao eyebrow="04 / Vendas" titulo="Vendas" texto="O registro de vendas chega na Fase 5." />} />
+        <Route path="funil" element={<Funil />} />
+        <Route path="vendas" element={<Vendas />} />
         <Route path="painel" element={<EmConstrucao eyebrow="05 / Painel" titulo="Painel" texto="Os números do mês chegam na Fase 6." />} />
         <Route path="importar" element={<EmConstrucao eyebrow="06 / Importar" titulo="Importar CSV" texto="A importação chega na Fase 6." />} />
         <Route path="config" element={<Config />} />

@@ -12,7 +12,7 @@ export type AlteracaoLead = TablesUpdate<'leads'>
 
 /** Campos usados na lista (mais leve que o lead completo). */
 const CAMPOS_LISTA =
-  'id,empresa,contato_nome,whatsapp,cidade,uf,segmento,estagio,tags,ultimo_contato_em,ultima_resposta_em,proxima_acao_em,opt_out,arquivado,valor_estimado,nota_auditoria,created_at,updated_at,origem'
+  'id,empresa,contato_nome,whatsapp,cidade,uf,segmento,estagio,motivo_perda,tags,ultimo_contato_em,ultima_resposta_em,proxima_acao,proxima_acao_em,tentativas_sem_resposta,servico_interesse,opt_out,arquivado,valor_estimado,nota_auditoria,created_at,updated_at,origem'
 export type LeadResumo = Pick<
   Lead,
   | 'id'
@@ -23,10 +23,14 @@ export type LeadResumo = Pick<
   | 'uf'
   | 'segmento'
   | 'estagio'
+  | 'motivo_perda'
   | 'tags'
   | 'ultimo_contato_em'
   | 'ultima_resposta_em'
+  | 'proxima_acao'
   | 'proxima_acao_em'
+  | 'tentativas_sem_resposta'
+  | 'servico_interesse'
   | 'opt_out'
   | 'arquivado'
   | 'valor_estimado'
@@ -129,6 +133,7 @@ export async function mudarEstagio(
     ...(motivoPerda ? { p_motivo_perda: motivoPerda } : {}),
   })
   if (r.error) throw traduzirErro(r.error)
+  if (!r.data) throw new Error('O servidor não confirmou a mudança. Atualize a página e confira.')
   aoMudar()
   invalidar(`lead:${id}`)
   return {

@@ -95,7 +95,7 @@ Escolha **um** dos caminhos.
 ### Conectar o Grok Bot
 
 27. No Grok Bot (ou na plataforma onde ele roda), cole como **prompt de sistema** o bloco de texto do arquivo `docs/AGENTE.md`.
-28. Cadastre as ferramentas (function calling) com o conteúdo de `docs/grok-tools.json`. São 19 ferramentas, uma por ação. Em cada uma, o campo `x-http` diz qual rota da API chamar.
+28. Cadastre as ferramentas (function calling) com o conteúdo de `docs/grok-tools.json`. São 21 ferramentas, uma por ação. Em cada uma, o campo `x-http` diz qual rota da API chamar.
 29. Configure o executor das ferramentas com a base da API, o header `Authorization: Bearer agz_...` e um `Idempotency-Key` (UUID) em cada `POST`. Os detalhes estão no topo do `docs/AGENTE.md`. Se preferir n8n ou Postman, importe o `docs/openapi.yaml`.
 30. Peça ao Grok: "Leia a fila de hoje e me diga o que tem". As chamadas aparecem em **Configurações → API e agente → Registro do agente**, e as propostas dele aparecem no topo da tela **Hoje**, em "Para aprovar".
 
