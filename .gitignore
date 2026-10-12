@@ -1,0 +1,16 @@
+node_modules
+dist
+dev-dist
+*.local
+.env
+.env.*
+!.env.example
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+# Supabase
+supabase/.temp
+supabase/.branches
+# wa-bridge
+.wwebjs_auth/
+.wwebjs_cache/

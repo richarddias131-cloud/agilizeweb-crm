@@ -1,0 +1,305 @@
+/* ---------- Logo ---------- */
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink);
+  font-size: 1.15rem;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+}
+.logo svg {
+  width: 22px;
+  height: 25px;
+  overflow: visible;
+}
+.logo-seta2 {
+  transition: transform var(--dur) var(--ease);
+}
+.logo:hover .logo-seta2,
+a:hover > .logo .logo-seta2 {
+  transform: translateX(3px);
+}
+.logo-texto b {
+  font-weight: 300;
+}
+.logo-produto {
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  color: var(--em-text);
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+/* ---------- Estrutura ---------- */
+.app {
+  min-height: 100dvh;
+}
+
+.skip-link {
+  position: absolute;
+  left: 12px;
+  top: -60px;
+  z-index: 100;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--em);
+  color: var(--on-em);
+  font-weight: 500;
+  text-decoration: none;
+}
+.skip-link:focus {
+  top: 12px;
+}
+
+.main {
+  outline: none;
+  padding: 20px 16px calc(var(--bottomnav-h) + 32px + env(safe-area-inset-bottom));
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
+}
+
+.page {
+  display: grid;
+  gap: 20px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+.page-header-texto {
+  display: grid;
+  gap: 8px;
+}
+.page-header-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ---------- Topbar (celular) ---------- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  height: 56px;
+  padding: env(safe-area-inset-top) max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left));
+  box-sizing: content-box;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--rule);
+}
+.topbar a {
+  text-decoration: none;
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+}
+
+/* ---------- Barra inferior (celular) ---------- */
+.bottomnav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  height: calc(var(--bottomnav-h) + env(safe-area-inset-bottom));
+  padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  background: color-mix(in srgb, var(--bg) 94%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid var(--rule);
+}
+.bottomnav-item {
+  position: relative;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 3px;
+  min-height: 44px;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.68rem;
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.bottomnav-item.active {
+  color: var(--ink);
+}
+.bottomnav-item.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 24px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--em);
+}
+
+/* ---------- Sidebar (desktop) ---------- */
+.sidebar {
+  display: none;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.92rem;
+  text-align: left;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.nav-item:hover {
+  background: var(--soft);
+  color: var(--ink);
+}
+.nav-item.active {
+  color: var(--ink);
+  background: var(--soft);
+}
+.nav-item.active svg {
+  color: var(--em-text);
+}
+.nav-kbd {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 1px 6px;
+}
+
+@media (min-width: 900px) {
+  .topbar,
+  .bottomnav {
+    display: none;
+  }
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: var(--sidebar-w);
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 20px 12px;
+    border-right: 1px solid var(--rule);
+    background: var(--bg);
+    overflow-y: auto;
+  }
+  .sidebar-logo {
+    display: inline-flex;
+    padding: 6px 12px;
+    text-decoration: none;
+    border-radius: 12px;
+  }
+  .sidebar-nav,
+  .sidebar-foot {
+    display: grid;
+    gap: 2px;
+  }
+  .sidebar-foot {
+    margin-top: auto;
+  }
+  .sidebar-tema {
+    padding: 12px 12px 0;
+  }
+  .main {
+    margin-left: var(--sidebar-w);
+    padding: 36px 40px 64px;
+  }
+}
+
+/* ---------- Segmented (tema) ---------- */
+.segmented {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+}
+.segmented button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 32px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--muted);
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.segmented button[aria-checked='true'] {
+  background: var(--em-soft);
+  color: var(--em-text);
+}
+
+/* ---------- Lista de links (tela Mais) ---------- */
+.lista-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 56px;
+  padding: 0 18px;
+  border: 0;
+  background: none;
+  text-decoration: none;
+  color: var(--ink);
+  text-align: left;
+  font-size: 1rem;
+}
+.lista-link > span {
+  flex: 1;
+}
+.lista-link:hover {
+  background: var(--soft);
+}
+.card.rows > .lista-link:first-child {
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+.card.rows > .lista-link:last-child {
+  border-radius: 0 0 var(--radius) var(--radius);
+}
+
+/* ---------- Login ---------- */
+.login {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+  background:
+    radial-gradient(60% 40% at 50% 0%, color-mix(in srgb, var(--em) 8%, transparent), transparent 70%),
+    var(--bg);
+}
+.login-card {
+  width: min(100%, 400px);
+  display: grid;
+  gap: 20px;
+  padding: 32px 24px;
+}
+
+.tela-carregando {
+  min-height: 100dvh;
+}

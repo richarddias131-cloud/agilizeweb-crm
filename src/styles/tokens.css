@@ -1,0 +1,60 @@
+:root {
+  --bg: #ffffff;
+  --ink: #111815;
+  --muted: #6b7872;
+  --rule: #e6eae8;
+  --soft: #f3f6f4;
+  --em: #2ee59d;
+  --em-text: #087f55;
+  --on-em: #06100d;
+  --danger: #e5484d;
+  --font: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  --ease: cubic-bezier(0.22, 0.7, 0.2, 1);
+
+  --em-soft: color-mix(in srgb, var(--em) 16%, transparent);
+  --danger-text: #c62f34;
+  --radius: 14px;
+  --radius-lg: 20px;
+  --dur: 200ms;
+  --sidebar-w: 216px;
+  --bottomnav-h: 64px;
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --bg: #06100d;
+  --ink: #e6f2ec;
+  --muted: #8fa399;
+  --rule: #1b2a23;
+  --soft: #0b1914;
+  --em-text: #2ee59d;
+  --danger-text: #ff7b7f;
+  color-scheme: dark;
+}
+
+/* Tema "sistema": sem data-theme, segue o SO. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --bg: #06100d;
+    --ink: #e6f2ec;
+    --muted: #8fa399;
+    --rule: #1b2a23;
+    --soft: #0b1914;
+    --em-text: #2ee59d;
+    --danger-text: #ff7b7f;
+    color-scheme: dark;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur: 0ms;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

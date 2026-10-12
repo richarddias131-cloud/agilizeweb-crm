@@ -1,0 +1,394 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: var(--em);
+  color: var(--on-em);
+}
+
+:focus-visible {
+  outline: 2px solid var(--em);
+  outline-offset: 3px;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-weight: 300;
+  letter-spacing: -0.035em;
+  line-height: 1.15;
+  word-spacing: 0.04em;
+}
+h1 {
+  font-size: clamp(1.75rem, 1.4rem + 1.4vw, 2.4rem);
+}
+h2 {
+  font-size: 1.4rem;
+  letter-spacing: -0.03em;
+}
+h3 {
+  font-size: 1.1rem;
+  letter-spacing: -0.02em;
+  font-weight: 400;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+}
+
+b,
+strong {
+  font-weight: 500;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.mono {
+  font-family: var(--mono);
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Eyebrow / rótulo ---------- */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--em-text);
+}
+.eyebrow::before {
+  content: '';
+  width: 28px;
+  height: 1px;
+  background: currentColor;
+}
+
+/* ---------- Botões ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: none;
+  font-weight: 500;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  text-decoration: none;
+  transition:
+    background var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
+    opacity var(--dur) var(--ease);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--em);
+  color: var(--on-em);
+}
+.btn-primary .arrow {
+  display: inline-block;
+  transition: transform var(--dur) var(--ease);
+}
+.btn-primary:hover:not(:disabled) {
+  box-shadow: 0 6px 22px -8px color-mix(in srgb, var(--em) 70%, transparent);
+}
+.btn-primary:hover:not(:disabled) .arrow {
+  transform: translateX(4px);
+}
+
+.btn-ghost {
+  border-color: var(--rule);
+  color: var(--ink);
+}
+.btn-ghost:hover:not(:disabled) {
+  border-color: var(--muted);
+}
+
+.btn-danger {
+  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+  color: var(--danger-text);
+}
+.btn-danger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+}
+
+.btn-sm {
+  min-height: 36px;
+  padding: 0 14px;
+  font-size: 0.85rem;
+}
+
+.btn-lg {
+  min-height: 56px;
+  padding: 0 28px;
+  font-size: 1.05rem;
+}
+
+.btn-block {
+  width: 100%;
+}
+
+.btn-icon {
+  width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid transparent;
+  background: none;
+  color: var(--ink);
+}
+.btn-icon:hover {
+  background: var(--soft);
+}
+
+/* Link com sublinhado esmeralda que preenche no hover (.ulink do site) */
+.ulink {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-weight: 500;
+  color: var(--ink);
+  text-decoration: none;
+  background-image: linear-gradient(var(--em), var(--em));
+  background-size: 100% 2px;
+  background-position: 0 calc(50% + 0.75em);
+  background-repeat: no-repeat;
+  transition: background-size var(--dur) var(--ease), background-position var(--dur) var(--ease);
+}
+.ulink:hover {
+  background-size: 100% 1.4em;
+  background-position: 0 50%;
+  color: var(--on-em);
+}
+
+/* ---------- Cards ---------- */
+.card {
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
+.card-lg {
+  border-radius: var(--radius-lg);
+}
+.card-pad {
+  padding: 20px;
+}
+.rows > * + * {
+  border-top: 1px solid var(--rule);
+}
+
+/* ---------- Badges ---------- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 10px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.badge-em {
+  background: var(--em-soft);
+  border-color: transparent;
+  color: var(--em-text);
+}
+.badge-danger {
+  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+  color: var(--danger-text);
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--em);
+  flex: none;
+}
+
+/* ---------- Formulários ---------- */
+.field {
+  display: grid;
+  gap: 6px;
+}
+.field > label,
+.label {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.input,
+.select,
+.textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  background: var(--bg);
+  font-size: 16px; /* evita zoom no iOS */
+  transition: border-color var(--dur) var(--ease);
+}
+.textarea {
+  min-height: 96px;
+  resize: vertical;
+  line-height: 1.5;
+}
+.input:hover,
+.select:hover,
+.textarea:hover {
+  border-color: var(--muted);
+}
+.input:focus-visible,
+.select:focus-visible,
+.textarea:focus-visible {
+  outline: 2px solid var(--em);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+.input[aria-invalid='true'] {
+  border-color: var(--danger);
+}
+.hint {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.hint-error {
+  font-size: 0.82rem;
+  color: var(--danger-text);
+}
+
+/* ---------- Barra de progresso (kit do site) ---------- */
+.progress {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--soft);
+  overflow: hidden;
+}
+.progress > span {
+  display: block;
+  height: 100%;
+  background: var(--em);
+  border-radius: 999px;
+  transition: width 400ms var(--ease);
+}
+
+/* ---------- Skeleton ---------- */
+.skeleton {
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--soft) 25%, var(--rule) 50%, var(--soft) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s linear infinite;
+}
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* ---------- Estados vazios / erro ---------- */
+.empty {
+  display: grid;
+  justify-items: start;
+  gap: 14px;
+  padding: 28px 20px;
+}
+.empty p {
+  color: var(--muted);
+  max-width: 44ch;
+}
+
+/* ---------- Utilitários ---------- */
+.stack {
+  display: grid;
+  gap: var(--gap, 16px);
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--gap, 12px);
+}
+.wrap {
+  flex-wrap: wrap;
+}
+.spacer {
+  flex: 1;
+}
