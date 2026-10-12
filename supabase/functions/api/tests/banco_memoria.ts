@@ -1,5 +1,5 @@
 // Banco em memória para os testes da API (imita as RPCs e regras do Postgres).
-import type { AcaoPendente, ApiChave, AtorCtx, Banco, Config, FiltrosLeads, FiltrosTarefas, FiltrosVendas, Interacao, Lead, NovoLead, NovoLog, Servico, Tarefa, Template, Venda } from '../lib/tipos.ts'
+import type { AcaoPendente, ApiChave, AtorCtx, Banco, Evento, Config, FiltrosLeads, FiltrosTarefas, FiltrosVendas, Interacao, Lead, NovoLead, NovoLog, Servico, Tarefa, Template, Venda } from '../lib/tipos.ts'
 import type { Estagio } from '../_shared/dominio.ts'
 import type { FilaBruta, LeadFila } from '../_shared/fila.ts'
 import { sha256Hex } from '../lib/util.ts'
@@ -221,5 +221,20 @@ export class BancoMemoria implements Banco {
   async metricas(userId: string, de: string | null, ate: string | null) {
     const v = this.vendasL.filter((x) => x.user_id === userId)
     return { periodo: { de, ate }, receita_periodo: { paga: v.filter((x) => x.status === 'pago').reduce((t, x) => t + Number(x.valor_total), 0) } }
+  }
+  async whatsappsExistentes(userId: string, numeros: string[]) {
+    return new Set(this.leads.filter((l) => l.user_id === userId && numeros.includes(l.whatsapp)).map((l) => l.whatsapp))
+  }
+  async inserirLeads(userId: string, leads: NovoLead[]) {
+    const criados: Lead[] = []
+    for (const l of leads) if (!(await this.leadPorWhatsapp(userId, l.whatsapp))) criados.push(this.novoLead(l as Partial<Lead>, userId))
+    return criados
+  }
+  async eventos(userId: string, desde: string, limite: number): Promise<Evento[]> {
+    const ev: Evento[] = [
+      ...this.leads.filter((l) => l.user_id === userId && l.updated_at > desde).map((l) => ({ tipo: (l.created_at > desde ? 'lead_criado' : 'lead_atualizado') as Evento['tipo'], ocorreu_em: l.updated_at, lead_id: l.id, dados: l as unknown as Record<string, unknown> })),
+      ...this.interacoesL.filter((i) => i.user_id === userId && i.created_at > desde).map((i) => ({ tipo: 'interacao' as const, ocorreu_em: i.created_at, lead_id: i.lead_id, dados: i as unknown as Record<string, unknown> })),
+    ]
+    return ev.sort((a, b) => a.ocorreu_em.localeCompare(b.ocorreu_em)).slice(0, limite)
   }
 }

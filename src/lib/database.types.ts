@@ -599,6 +599,65 @@ export type Database = {
           },
         ]
       }
+      webhook_entregas: {
+        Row: {
+          id: string
+          user_id: string
+          webhook_id: string
+          evento: string
+          corpo: Json
+          status: string
+          tentativas: number
+          request_id: number | null
+          enviado_em: string | null
+          proxima_tentativa_em: string
+          ultimo_status: number | null
+          ultimo_erro: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          webhook_id: string
+          evento: string
+          corpo: Json
+          status?: string
+          tentativas?: number
+          request_id?: number | null
+          enviado_em?: string | null
+          proxima_tentativa_em?: string
+          ultimo_status?: number | null
+          ultimo_erro?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          webhook_id?: string
+          evento?: string
+          corpo?: Json
+          status?: string
+          tentativas?: number
+          request_id?: number | null
+          enviado_em?: string | null
+          proxima_tentativa_em?: string
+          ultimo_status?: number | null
+          ultimo_erro?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_entregas_webhook_id_fkey"
+            columns: ["webhook_id"]
+            isOneToOne: false
+            referencedRelation: "webhooks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       webhooks: {
         Row: {
           id: string
@@ -808,6 +867,12 @@ export type Database = {
           p_ator_nome?: string
         }
         Returns: Database["public"]["Tables"]["vendas"]["Row"]
+      }
+      testar_webhook: {
+        Args: {
+          p_webhook: string
+        }
+        Returns: string
       }
     }
     Enums: {

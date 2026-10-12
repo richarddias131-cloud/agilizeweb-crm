@@ -96,6 +96,15 @@ curl -X POST "$AGZ_API/leads" -H "Authorization: Bearer $AGZ_CHAVE" -H "Content-
 # 201 → { "criado": true, "lead": {...} }   |   200 → { "criado": false, "lead": {...} }
 ```
 
+**Criar vários de uma vez** (até 500; mesmo relatório da importação CSV):
+
+```bash
+curl -X POST "$AGZ_API/leads/lote" -H "Authorization: Bearer $AGZ_CHAVE" -H "Content-Type: application/json" \
+  -H "Idempotency-Key: 9a1b...-uuid" \
+  -d '{"tag":"oticas-campinas-out","leads":[{"empresa":"Ótica A","whatsapp":"19999990001","cidade":"Campinas"},{"empresa":"Ótica B","whatsapp":"(19) 3333-4444"}]}'
+# → { "importados": 2, "duplicados": 0, "invalidos": 0, "ids": [...], "detalhes": { "duplicados": [], "invalidos": [] } }
+```
+
 **Editar** (enriquecer). Não muda estágio nem arquiva. `opt_out` só pode virar `true`:
 
 ```bash
@@ -195,6 +204,38 @@ curl -X POST "$AGZ_API/tarefas" -H "Authorization: Bearer $AGZ_CHAVE" -H "Conten
 curl -X PATCH "$AGZ_API/tarefas/<id>" -H "Authorization: Bearer $AGZ_CHAVE" -H "Content-Type: application/json" \
   -d '{"concluida":true}'
 ```
+
+### Eventos (sincronização)
+
+Tudo o que mudou desde um momento: leads criados ou alterados, interações, propostas decididas e vendas. Guarde `proximo_desde` e use na próxima chamada.
+
+```bash
+curl "$AGZ_API/eventos?desde=2026-10-12T08:00:00-03:00" -H "Authorization: Bearer $AGZ_CHAVE"
+# → { "dados": [{ "tipo": "interacao", "ocorreu_em": "...", "lead_id": "...", "dados": {...} }], "proximo_desde": "...", "tem_mais": false }
+```
+
+### Webhooks (CRM → agente)
+
+Cadastrados pelo Richard em **Configurações → API e agente → Webhooks** (URL `https`, eventos e segredo). Eventos: `lead.criado`, `lead.respondeu`, `lead.estagio_alterado`, `mensagem.recebida`, `acao.aprovada`, `acao.rejeitada` e `venda.criada` (mais `teste`, pelo botão "Enviar teste").
+
+```http
+POST https://seu-servidor/webhook
+Content-Type: application/json
+X-Agilize-Evento: lead.respondeu
+X-Agilize-Entrega: 5f0c...-uuid
+X-Agilize-Assinatura: sha256=9b1e...
+
+{"dados": {"lead_id": "...", "empresa": "Ótica Visão", "estagio": "respondeu", ...}, "evento": "lead.respondeu", "ocorreu_em": "2026-10-12T14:03:11.52-03:00"}
+```
+
+- **Assinatura:** HMAC-SHA256 do corpo **exatamente como recebido** (bytes crus), com o segredo do webhook, em hexadecimal. Compare em tempo constante. Exemplo em Node:
+  ```js
+  const esperado = 'sha256=' + crypto.createHmac('sha256', SEGREDO).update(corpoCru).digest('hex')
+  const ok = crypto.timingSafeEqual(Buffer.from(esperado), Buffer.from(req.headers['x-agilize-assinatura']))
+  ```
+- **Resposta:** devolva qualquer `2xx` em até 8 s. O processamento pesado vai depois.
+- **Novas tentativas:** até 3, após 1, 5 e 15 minutos. Use `X-Agilize-Entrega` para ignorar repetidas.
+- **Desativação:** depois de 10 falhas seguidas o webhook é desligado e aparece um aviso nas Configurações.
 
 ### Vendas e métricas
 

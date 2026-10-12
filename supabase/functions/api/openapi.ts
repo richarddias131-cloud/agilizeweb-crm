@@ -288,6 +288,68 @@ export function especificacaoOpenApi(servidor = 'https://SEU-PROJETO.supabase.co
           ferramenta: { nome: 'criar_ou_atualizar_lead', descricao: 'Cadastra um lead novo ou atualiza um existente pelo WhatsApp (upsert). Obrigatórios: empresa e whatsapp. Use também para enriquecer um lead com segmento, links, nota da auditoria etc.' },
         }),
       },
+      '/leads/lote': {
+        post: op({
+          summary: 'Criar vários leads de uma vez (até 500)',
+          description: 'Mesmo relatório da importação CSV. Duplicados (no lote ou já cadastrados) e telefones inválidos são descartados, com o motivo.',
+          tags: ['Leads'],
+          escopo: 'escrita',
+          requestBody: corpoJson({
+            type: 'object',
+            required: ['leads'],
+            properties: {
+              leads: { type: 'array', maxItems: 500, items: { ...LEAD_ENTRADA, required: ['empresa', 'whatsapp'] } },
+              tag: texto('Tag aplicada a todos (ex.: nome da campanha).'),
+            },
+          }),
+          responses: {
+            '200': resp('Relatório.', {
+              type: 'object',
+              properties: {
+                importados: { type: 'integer' },
+                duplicados: { type: 'integer' },
+                invalidos: { type: 'integer' },
+                ids: { type: 'array', items: { type: 'object', properties: { id: { type: 'string' }, whatsapp: { type: 'string' } } } },
+                detalhes: { type: 'object', description: 'duplicados e invalidos: [{ linha, empresa, whatsapp, motivo }]' },
+              },
+            }),
+            ...ERROS_ESCRITA,
+          },
+          ferramenta: { nome: 'criar_leads_em_lote', descricao: 'Cadastra até 500 leads de uma vez (ex.: uma lista de prospecção). Devolve quantos entraram, quantos eram duplicados e quais telefones estavam inválidos.' },
+        }),
+      },
+      '/eventos': {
+        get: op({
+          summary: 'O que mudou desde um momento (sincronização por polling)',
+          description: 'Use proximo_desde da resposta na próxima chamada. Para receber em tempo real, peça ao Richard um webhook.',
+          tags: ['Sistema'],
+          escopo: 'leitura',
+          parameters: [q('desde', 'Obrigatório. Data ISO 8601.', { type: 'string', format: 'date-time' }), q('limite', '1 a 500 (padrão 200).', { type: 'integer', minimum: 1, maximum: 500 })],
+          responses: {
+            '200': resp('Eventos em ordem cronológica.', {
+              type: 'object',
+              properties: {
+                dados: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      tipo: { type: 'string', enum: ['lead_criado', 'lead_atualizado', 'interacao', 'acao_decidida', 'venda_criada'] },
+                      ocorreu_em: { type: 'string', format: 'date-time' },
+                      lead_id: anulavel({ type: 'string', format: 'uuid' }),
+                      dados: { type: 'object' },
+                    },
+                  },
+                },
+                proximo_desde: { type: 'string', format: 'date-time' },
+                tem_mais: { type: 'boolean' },
+              },
+            }),
+            ...ERROS_COMUNS,
+          },
+          ferramenta: { nome: 'eventos_desde', descricao: 'Lista o que mudou no CRM desde um momento (leads criados/alterados, interações, propostas decididas, vendas). Use para saber o que o Richard fez desde a sua última rodada.' },
+        }),
+      },
       '/leads/{id}': {
         get: op({
           summary: 'Lead completo com últimas 20 interações e tarefas abertas',

@@ -277,3 +277,40 @@ Deno.test('vendas e métricas: escopos, período e paginação', async () => {
   igual(m.status, 200)
   igual(m.corpo.receita_periodo.paga, 1099.8)
 })
+
+Deno.test('POST /leads/lote: relatório de importados, duplicados e inválidos; limite de 500', async () => {
+  const { chamar, banco } = await cenario()
+  banco.novoLead({ whatsapp: '5519999990002' })
+  const r = await chamar('POST', '/leads/lote', {
+    corpo: {
+      tag: 'lote-teste',
+      leads: [
+        { empresa: 'A', whatsapp: '(19) 99999-0001', cidade: 'Campinas' },
+        { empresa: 'A bis', whatsapp: '19999990001' },
+        { empresa: 'Já existe', whatsapp: '19 99999-0002' },
+        { empresa: 'Inválido', whatsapp: '123' },
+      ],
+    },
+  })
+  igual(r.status, 200)
+  igual([r.corpo.importados, r.corpo.duplicados, r.corpo.invalidos], [1, 2, 1])
+  igual(r.corpo.detalhes.invalidos[0].linha, 4)
+  const criado = banco.leads.find((l) => l.whatsapp === '5519999990001')!
+  igual([criado.origem, criado.tags], ['agente', ['lote-teste']])
+  const grande = await chamar('POST', '/leads/lote', { corpo: { leads: Array.from({ length: 501 }, (_, i) => ({ empresa: `L${i}`, whatsapp: '19999990009' })) } })
+  igual(grande.status, 422)
+})
+
+Deno.test('GET /eventos: feed desde um momento', async () => {
+  const { chamar, banco } = await cenario()
+  const inicio = new Date(Date.now() - 1000).toISOString()
+  igual((await chamar('GET', '/eventos')).status, 422)
+  await chamar('POST', '/leads', { corpo: { empresa: 'Novo', whatsapp: '19988880000' } })
+  const l = banco.leads[0]!
+  await chamar('POST', `/leads/${l.id}/interacoes`, { corpo: { tipo: 'nota', conteudo: 'x' } })
+  const r = await chamar('GET', `/eventos?desde=${encodeURIComponent(inicio)}`)
+  igual(r.status, 200)
+  igual(r.corpo.dados.map((e: { tipo: string }) => e.tipo).sort(), ['interacao', 'lead_criado'])
+  const depois = await chamar('GET', `/eventos?desde=${encodeURIComponent(r.corpo.proximo_desde)}`)
+  igual(depois.corpo.dados.length, 0)
+})

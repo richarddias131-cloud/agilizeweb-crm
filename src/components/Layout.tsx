@@ -7,6 +7,7 @@ import { NAV_CONFIG, NAV_MOBILE, NAV_PRINCIPAL } from './nav'
 import { sair } from '../services/auth'
 import { Fab, useCaptura } from './CapturaRapida'
 import { ouvirMudancas } from '../services/realtime'
+import { Comandos } from './Comandos'
 
 export function Layout() {
   const { abrir } = useCaptura()
@@ -24,6 +25,15 @@ export function Layout() {
         </NavLink>
         <button type="button" className="btn btn-primary sidebar-novo" onClick={abrir}>
           <Icon name="plus" size={18} /> Novo lead <kbd className="nav-kbd nav-kbd-em">N</kbd>
+        </button>
+        <button
+          type="button"
+          className="nav-item busca-global"
+          onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }))}
+        >
+          <Icon name="busca" />
+          <span>Buscar</span>
+          <kbd className="nav-kbd">Ctrl K</kbd>
         </button>
         <nav className="sidebar-nav">
           {NAV_PRINCIPAL.map((item) => (
@@ -60,6 +70,7 @@ export function Layout() {
       </main>
 
       <Fab />
+      <Comandos />
 
       <nav className="bottomnav" aria-label="Navegação">
         {NAV_MOBILE.map((item) => (

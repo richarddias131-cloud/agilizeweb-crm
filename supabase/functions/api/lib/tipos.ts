@@ -48,6 +48,13 @@ export type FiltrosVendas = {
   apos?: { fechada_em: string; id: string }
 }
 
+export type Evento = {
+  tipo: 'lead_criado' | 'lead_atualizado' | 'interacao' | 'acao_decidida' | 'venda_criada'
+  ocorreu_em: string
+  lead_id: string | null
+  dados: Record<string, unknown>
+}
+
 export type NovoLog = {
   user_id: string
   chave_id: string | null
@@ -110,6 +117,11 @@ export interface Banco {
   marcarRespondeu(leadId: string, conteudo: string | null, ator: AtorCtx): Promise<{ id: string; marco: string }>
   encerrarCadencia(leadId: string, reativarEm: string, ator: AtorCtx): Promise<void>
   filaHoje(userId: string): Promise<FilaBruta>
+
+  whatsappsExistentes(userId: string, numeros: string[]): Promise<Set<string>>
+  /** Insere vários; números já existentes são ignorados. Devolve os criados. */
+  inserirLeads(userId: string, leads: NovoLead[]): Promise<Lead[]>
+  eventos(userId: string, desde: string, limite: number): Promise<Evento[]>
 
   listarVendas(userId: string, f: FiltrosVendas): Promise<Venda[]>
   metricas(userId: string, de: string | null, ate: string | null): Promise<Record<string, unknown>>

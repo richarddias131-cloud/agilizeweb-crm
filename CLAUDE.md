@@ -37,6 +37,9 @@ Supabase (Postgres + Auth + Realtime), PWA (vite-plugin-pwa), deploy no GitHub P
 - **Cadência:** `shared/cadencia.ts` (`aposEnvio`, `deveEncerrar`). O resultado vai para a RPC `registrar_envio`.
 - **Ações rápidas:** RPCs `registrar_envio`, `marcar_respondeu`, `mudar_estagio` devolvem um *marco* (o `now()` da transação). `desfazer_acao(lead, marco, retrato)` reverte exatamente o que foi gravado (usado pelo toast "Desfazer").
 - **Ator:** as RPCs recebem `p_ator`/`p_ator_nome` (richard | agente | bridge). A interação de mudança de estágio é gravada por trigger.
+- **Importação em lote:** `shared/importacao.ts` (CSV da tela e `POST /leads/lote`).
+- **Métricas:** função SQL `metricas_resumo` (Painel e `GET /metricas/resumo`).
+- **Webhooks:** triggers no banco → `webhook_entregas` → `pg_net` (HMAC-SHA256); job `pg_cron` "agz-webhooks" reenvia (1/5/15 min) e desativa após 10 falhas.
 - **Tipos do banco:** `src/lib/database.types.ts`, no formato do `supabase gen types`. Atualize quando mudar uma migration.
 
 ## Identidade visual (seguir à risca)

@@ -13,6 +13,7 @@ import { adicionarTag, atualizarVarios, listarLeads, mudarEstagioVarios, type Le
 import { ESTAGIOS, ESTAGIO_ROTULO, ehEstagio, type Estagio } from '../../shared/dominio.ts'
 import { formatarTelefone } from '../../shared/phone.ts'
 import { haQuanto } from '../lib/formato'
+import { exportarLeads } from '../services/importacao'
 import { ehCampoDeTexto, normalizarBusca } from '../lib/teclado'
 
 const LIMITE_INICIAL = 100
@@ -49,6 +50,16 @@ export function Leads() {
     setParams(p, { replace: true })
     setLimite(LIMITE_INICIAL)
   }
+
+  // Vindo do atalho "/" em outra tela.
+  useEffect(() => {
+    if (params.get('buscar') === '1') {
+      buscaRef.current?.focus()
+      const p = new URLSearchParams(params)
+      p.delete('buscar')
+      setParams(p, { replace: true })
+    }
+  }, [params, setParams])
 
   // "/" foca a busca.
   useEffect(() => {
@@ -131,9 +142,14 @@ export function Leads() {
         eyebrow="02 / Leads"
         titulo="Leads"
         acoes={
-          <button type="button" className="btn btn-primary" onClick={abrir}>
-            Novo lead <span className="arrow">→</span>
-          </button>
+          <>
+            <button type="button" className="btn btn-ghost" disabled={!filtrados.length} onClick={() => exportarLeads(filtrados)}>
+              Exportar CSV
+            </button>
+            <button type="button" className="btn btn-primary" onClick={abrir}>
+              Novo lead <span className="arrow">→</span>
+            </button>
+          </>
         }
       >
         {leads && (

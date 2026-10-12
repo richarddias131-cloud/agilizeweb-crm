@@ -4,7 +4,7 @@ import { createClient, type PostgrestError, type SupabaseClient } from 'npm:@sup
 import type { Database } from './_shared/database.types.ts'
 import type { FilaBruta } from './_shared/fila.ts'
 import { ErroApi, erros } from './lib/erros.ts'
-import type { AlteracaoLead, AtorCtx, Banco, FiltrosLeads, FiltrosTarefas, FiltrosVendas, NovoLead, NovoLog, Tarefa } from './lib/tipos.ts'
+import type { AlteracaoLead, AtorCtx, Banco, Evento, FiltrosLeads, FiltrosTarefas, FiltrosVendas, NovoLead, NovoLog, Tarefa } from './lib/tipos.ts'
 
 function falha(e: PostgrestError): never {
   const m = e.message ?? ''
@@ -222,5 +222,38 @@ export class BancoSupabase implements Banco {
     const r = await this.db.rpc('metricas_resumo', { p_user: userId, ...(de ? { p_de: de } : {}), ...(ate ? { p_ate: ate } : {}) })
     if (r.error?.message.includes('periodo_invalido')) throw erros.validacao({ ate: '"ate" precisa ser depois de "de".' })
     return ok(r) as unknown as Record<string, unknown>
+  }
+
+  async whatsappsExistentes(userId: string, numeros: string[]) {
+    const achados = new Set<string>()
+    for (let i = 0; i < numeros.length; i += 200) {
+      const r = ok(await this.db.from('leads').select('whatsapp').eq('user_id', userId).in('whatsapp', numeros.slice(i, i + 200)))
+      r.forEach((l) => achados.add(l.whatsapp))
+    }
+    return achados
+  }
+  async inserirLeads(userId: string, leads: NovoLead[]) {
+    if (!leads.length) return []
+    return ok(
+      await this.db
+        .from('leads')
+        .upsert(leads.map((l) => ({ ...l, user_id: userId })), { onConflict: 'user_id,whatsapp', ignoreDuplicates: true })
+        .select('*'),
+    )
+  }
+  async eventos(userId: string, desde: string, limite: number) {
+    const [leads, inter, acoes, vendas] = await Promise.all([
+      this.db.from('leads').select('*').eq('user_id', userId).gt('updated_at', desde).order('updated_at').limit(limite),
+      this.db.from('interacoes').select('*').eq('user_id', userId).gt('created_at', desde).order('created_at').limit(limite),
+      this.db.from('acoes_pendentes').select('*').eq('user_id', userId).neq('status', 'pendente').gt('updated_at', desde).order('updated_at').limit(limite),
+      this.db.from('vendas').select('*').eq('user_id', userId).gt('created_at', desde).order('created_at').limit(limite),
+    ])
+    const ev: Evento[] = [
+      ...ok(leads).map((l) => ({ tipo: (l.created_at > desde ? 'lead_criado' : 'lead_atualizado') as Evento['tipo'], ocorreu_em: l.updated_at, lead_id: l.id, dados: l as unknown as Record<string, unknown> })),
+      ...ok(inter).map((i) => ({ tipo: 'interacao' as const, ocorreu_em: i.created_at, lead_id: i.lead_id, dados: i as unknown as Record<string, unknown> })),
+      ...ok(acoes).map((a) => ({ tipo: 'acao_decidida' as const, ocorreu_em: a.updated_at, lead_id: a.lead_id, dados: a as unknown as Record<string, unknown> })),
+      ...ok(vendas).map((v) => ({ tipo: 'venda_criada' as const, ocorreu_em: v.created_at, lead_id: v.lead_id, dados: v as unknown as Record<string, unknown> })),
+    ]
+    return ev.sort((a, b) => a.ocorreu_em.localeCompare(b.ocorreu_em)).slice(0, limite)
   }
 }

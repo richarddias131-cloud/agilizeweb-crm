@@ -7,6 +7,7 @@ import { useDados } from '../hooks/useDados'
 import { obterConfig, salvarConfig } from '../services/config'
 import { atualizarChave, criarChave, listarChaves, listarRegistro, ESCOPOS, type Escopo } from '../services/api'
 import { dataHora, haQuanto, quando } from '../lib/formato'
+import { ConfigWebhooks } from './ConfigWebhooks'
 
 const ESCOPO_DESCRICAO: Record<Escopo, string> = {
   leitura: 'Consultar leads, fila, templates e tarefas',
@@ -133,6 +134,8 @@ export function ConfigApi() {
           </ul>
         )}
       </section>
+
+      <ConfigWebhooks />
 
       <section className="card card-pad secao-config">
         <div className="row wrap" style={{ justifyContent: 'space-between' }}>

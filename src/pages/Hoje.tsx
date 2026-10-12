@@ -1,5 +1,5 @@
-import { useState, type ReactNode } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useState, type ReactNode } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { EstagioBadge } from '../components/EstagioBadge'
@@ -25,6 +25,15 @@ export function Hoje() {
   const toast = useToast()
   const navigate = useNavigate()
   const [foco, setFoco] = useState(false)
+  const [params, setParams] = useSearchParams()
+
+  // Paleta de comandos → "Modo foco"
+  useEffect(() => {
+    if (params.get('foco') === '1' && fila) {
+      setParams({}, { replace: true })
+      if (fila.sequencia.length) setFoco(true)
+    }
+  }, [params, fila, setParams])
 
   const hoje = format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR })
 
