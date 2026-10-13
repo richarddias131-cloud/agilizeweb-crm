@@ -1,35 +1,31 @@
-/* ---------- Logo ---------- */
+/* ---------- Logo CRESBI (símbolo facetado + logotipo) ---------- */
 .logo {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  color: var(--ink);
-  font-size: 1.15rem;
-  font-weight: 400;
-  letter-spacing: -0.03em;
+  gap: 10px;
+  color: var(--text);
 }
-.logo svg {
-  width: 22px;
-  height: 25px;
-  overflow: visible;
+.logo-simbolo {
+  width: 24px;
+  height: 24px;
+  flex: none;
 }
-.logo-seta2 {
-  transition: transform var(--dur) var(--ease);
-}
-.logo:hover .logo-seta2,
-a:hover > .logo .logo-seta2 {
-  transform: translateX(3px);
-}
-.logo-texto b {
-  font-weight: 300;
+.logo-texto {
+  font-family: var(--font);
+  font-weight: 480;
+  font-size: 15px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  line-height: 1;
 }
 .logo-produto {
-  font-size: 0.7rem;
-  letter-spacing: 0.06em;
-  color: var(--em-text);
-  border: 1px solid var(--rule);
-  border-radius: 999px;
-  padding: 2px 8px;
+  font: 500 11px/16px var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold);
+  background: var(--gold-soft);
+  border-radius: var(--radius-sm);
+  padding: 2px 6px;
 }
 
 /* ---------- Estrutura ---------- */
@@ -43,7 +39,7 @@ a:hover > .logo .logo-seta2 {
   top: -60px;
   z-index: 100;
   padding: 10px 16px;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   background: var(--em);
   color: var(--on-em);
   font-weight: 500;
@@ -163,7 +159,7 @@ a:hover > .logo .logo-seta2 {
   min-height: 44px;
   padding: 0 12px;
   border: 0;
-  border-radius: 12px;
+  border-radius: var(--radius);
   background: none;
   color: var(--muted);
   text-decoration: none;
@@ -213,7 +209,7 @@ a:hover > .logo .logo-seta2 {
     display: inline-flex;
     padding: 6px 12px;
     text-decoration: none;
-    border-radius: 12px;
+    border-radius: var(--radius);
   }
   .sidebar-nav,
   .sidebar-foot {
@@ -238,7 +234,7 @@ a:hover > .logo .logo-seta2 {
   padding: 3px;
   gap: 2px;
   border: 1px solid var(--rule);
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
 }
 .segmented button {
   display: grid;
@@ -246,7 +242,7 @@ a:hover > .logo .logo-seta2 {
   width: 36px;
   height: 32px;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   background: none;
   color: var(--muted);
   transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
@@ -290,9 +286,6 @@ a:hover > .logo .logo-seta2 {
   display: grid;
   place-items: center;
   padding: 24px 16px;
-  background:
-    radial-gradient(60% 40% at 50% 0%, color-mix(in srgb, var(--em) 8%, transparent), transparent 70%),
-    var(--bg);
 }
 .login-card {
   width: min(100%, 400px);

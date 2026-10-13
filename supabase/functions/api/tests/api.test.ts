@@ -47,7 +47,7 @@ Deno.test('health e openapi são públicos', async () => {
 Deno.test('autenticação: sem chave, chave errada, revogada e expirada → 401', async () => {
   const { chamar, banco } = await cenario()
   igual((await chamar('GET', '/leads', { chave: null })).corpo.erro.codigo, 'nao_autenticado')
-  igual((await chamar('GET', '/leads', { chave: 'agz_naoexiste0000000000000000' })).status, 401)
+  igual((await chamar('GET', '/leads', { chave: 'crb_naoexiste0000000000000000' })).status, 401)
   const revogada = await banco.criarChave(['leitura'], { ativa: false })
   igual((await chamar('GET', '/leads', { chave: revogada })).corpo.erro.codigo, 'chave_invalida')
   const expirada = await banco.criarChave(['leitura'], { expira_em: new Date(Date.now() - 1000).toISOString() })
@@ -135,7 +135,7 @@ Deno.test('prospecção fria nunca sai direto: vira ação pendente, mesmo com t
   igual(r.corpo.enviado, false)
   igual(r.corpo.motivo, 'prospeccao_fria')
   igual(r.corpo.acao_pendente.tipo, 'enviar_mensagem')
-  igual(r.corpo.acao_pendente.payload.texto, 'Olá, Marina! Vi a Ótica Teste em Campinas. Richard | AgilizeWeb')
+  igual(r.corpo.acao_pendente.payload.texto, 'Olá, Marina! Vi a Ótica Teste em Campinas. Richard | CRESBI')
   igual(banco.interacoesL.filter((i) => i.tipo === 'whatsapp_enviado').length, 0, 'nada enviado')
 
   const st = await chamar('GET', `/acoes-pendentes/${r.corpo.acao_pendente.id}`)
@@ -201,7 +201,7 @@ Deno.test('respondeu e fila de hoje', async () => {
   const fila1 = await chamar('GET', '/fila/hoje')
   igual(fila1.corpo.novos.length, 1)
   igual(fila1.corpo.novos[0].acao_sugerida, 'Abordar')
-  igual(fila1.corpo.novos[0].mensagem_sugerida, 'Olá, Marina! Vi a Novo em Campinas. Richard | AgilizeWeb')
+  igual(fila1.corpo.novos[0].mensagem_sugerida, 'Olá, Marina! Vi a Novo em Campinas. Richard | CRESBI')
   const r = await chamar('POST', `/leads/${l.id}/respondeu`, { corpo: { conteudo: 'Pode mandar' } })
   igual(r.status, 200)
   igual(r.corpo.lead.estagio, 'respondeu')

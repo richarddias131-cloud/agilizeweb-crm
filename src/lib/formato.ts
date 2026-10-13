@@ -8,6 +8,11 @@ export function moeda(v: number | null | undefined): string {
   return moedaFmt.format(v ?? 0)
 }
 
+/** Preço do catálogo: 0 significa "valor por proposta" (definido na venda). */
+export function precoCatalogo(v: number | null | undefined): string {
+  return Number(v ?? 0) > 0 ? moeda(Number(v)) : 'Valor por proposta'
+}
+
 export function numero(v: number | null | undefined): string {
   return numFmt.format(v ?? 0)
 }

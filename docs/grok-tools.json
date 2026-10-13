@@ -790,7 +790,7 @@
     "type": "function",
     "function": {
       "name": "listar_servicos",
-      "description": "Catálogo de serviços e preços da AgilizeWeb. O agente nunca altera preços. [GET /servicos]",
+      "description": "Catálogo de serviços e preços da CRESBI. O agente nunca altera preços. [GET /servicos]",
       "parameters": {
         "type": "object",
         "properties": {},

@@ -4,7 +4,13 @@ import { useToast } from '../context/ToastContext'
 import { useDados } from '../hooks/useDados'
 import { listarServicos } from '../services/servicos'
 import { registrarVenda, type ItemVenda } from '../services/vendas'
-import { moeda } from '../lib/formato'
+import { moeda, precoCatalogo } from '../lib/formato'
+
+/** "1.234,56" → 1234.56; texto vazio ou inválido → NaN. */
+function paraNumero(t: string): number {
+  const limpo = t.trim().replace(/\./g, '').replace(',', '.')
+  return limpo ? Number(limpo) : NaN
+}
 
 const FORMAS = ['Pix', 'Cartão de crédito', 'Cartão de débito', 'Boleto', 'Dinheiro', 'Transferência']
 
@@ -20,6 +26,8 @@ export function VendaModal({ aberto, lead, aoFechar, aoSalvar }: Props) {
   const toast = useToast()
   const { dados: servicos } = useDados('servicos', listarServicos)
   const [qtd, setQtd] = useState<Record<string, number>>({})
+  // Preço digitado por item (texto pt-BR). Sem valor, vale o preço do catálogo.
+  const [precos, setPrecos] = useState<Record<string, string>>({})
   const [forma, setForma] = useState('Pix')
   const [status, setStatus] = useState<'aguardando' | 'pago'>('aguardando')
   const [manutencao, setManutencao] = useState(false)
@@ -32,6 +40,7 @@ export function VendaModal({ aberto, lead, aoFechar, aoSalvar }: Props) {
   useEffect(() => {
     if (!aberto) return
     setQtd(lead?.servico_interesse ? { [lead.servico_interesse]: 1 } : {})
+    setPrecos({})
     setForma('Pix')
     setStatus('aguardando')
     setManutencao(false)
@@ -41,8 +50,9 @@ export function VendaModal({ aberto, lead, aoFechar, aoSalvar }: Props) {
 
   const itens: ItemVenda[] = ativos
     .filter((s) => (qtd[s.id] ?? 0) > 0)
-    .map((s) => ({ servico_id: s.id, nome: s.nome, qtd: qtd[s.id]!, preco: Number(s.preco) }))
-  const total = itens.reduce((t, i) => t + i.qtd * i.preco, 0)
+    .map((s) => ({ servico_id: s.id, nome: s.nome, qtd: qtd[s.id]!, preco: precoDe(s.id, Number(s.preco)) }))
+  const total = itens.reduce((t, i) => t + i.qtd * (Number.isFinite(i.preco) ? i.preco : 0), 0)
+  const semPreco = itens.filter((i) => !Number.isFinite(i.preco) || i.preco <= 0)
   const sugestaoMensal = ativos.filter((s) => (qtd[s.id] ?? 0) > 0 && s.recorrente).reduce((t, s) => t + Number(s.preco_mensal ?? 0), 0)
 
   // Ao escolher um serviço com manutenção, já sugere a manutenção mensal.
@@ -52,18 +62,24 @@ export function VendaModal({ aberto, lead, aoFechar, aoSalvar }: Props) {
     setMensal(sugestaoMensal ? sugestaoMensal.toFixed(2).replace('.', ',') : '')
   }, [sugestaoMensal, mensalEditado])
 
+  function precoDe(id: string, catalogo: number): number {
+    const t = precos[id]
+    return t === undefined ? catalogo : paraNumero(t)
+  }
+
   const alternar = (id: string) => setQtd((q) => ({ ...q, [id]: q[id] ? 0 : 1 }))
   const mudarQtd = (id: string, d: number) => setQtd((q) => ({ ...q, [id]: Math.max(1, Math.min(99, (q[id] ?? 1) + d)) }))
 
   async function salvar() {
     if (!lead) return
     if (!itens.length) return toast('Escolha ao menos um serviço.', { tipo: 'erro' })
-    const valorMensal = Number(mensal.replace(/\./g, '').replace(',', '.'))
+    if (semPreco.length) return toast(`Informe o valor de ${semPreco[0]!.nome}.`, { tipo: 'erro' })
+    const valorMensal = paraNumero(mensal)
     if (manutencao && (!Number.isFinite(valorMensal) || valorMensal <= 0)) return toast('Informe o valor da manutenção mensal.', { tipo: 'erro' })
     setSalvando(true)
     try {
       await registrarVenda({ leadId: lead.id, itens, forma, status, manutencao, valorMensal: manutencao ? valorMensal : 0 })
-      toast(`Venda de ${moeda(total)} registrada. ${lead.empresa} agora é cliente!`)
+      toast(`Venda de ${moeda(total)} registrada. ${lead.empresa} agora é cliente.`)
       aoSalvar?.()
       aoFechar()
     } catch (e) {
@@ -97,16 +113,30 @@ export function VendaModal({ aberto, lead, aoFechar, aoSalvar }: Props) {
             const n = qtd[s.id] ?? 0
             return (
               <div key={s.id} className={`venda-servico ${n ? 'marcado' : ''}`}>
-                <label className="toggle" style={{ flex: 1, minWidth: 0 }}>
+                <label className="toggle venda-servico-nome">
                   <input type="checkbox" checked={n > 0} onChange={() => alternar(s.id)} />
                   <span className="stack" style={{ gap: 0 }}>
                     <span>{s.nome}</span>
                     <span className="muted num" style={{ fontSize: '.82rem' }}>
-                      {moeda(Number(s.preco))}
+                      {precoCatalogo(Number(s.preco))}
                       {s.recorrente && s.preco_mensal ? ` + manutenção opcional ${moeda(Number(s.preco_mensal))}/mês` : ''}
                     </span>
                   </span>
                 </label>
+                {n > 0 && (
+                  <div className="input-sufixo venda-preco">
+                    <span className="muted">R$</span>
+                    <input
+                      className="input num"
+                      aria-label={`Valor de ${s.nome}`}
+                      inputMode="decimal"
+                      placeholder="0,00"
+                      aria-invalid={precoDe(s.id, Number(s.preco)) > 0 ? undefined : true}
+                      value={precos[s.id] ?? (Number(s.preco) > 0 ? Number(s.preco).toFixed(2).replace('.', ',') : '')}
+                      onChange={(e) => setPrecos((p) => ({ ...p, [s.id]: e.target.value }))}
+                    />
+                  </div>
+                )}
                 {n > 0 && (
                   <div className="qtd" aria-label={`Quantidade de ${s.nome}`}>
                     <button type="button" className="btn-icon" aria-label="Menos" onClick={() => mudarQtd(s.id, -1)}>

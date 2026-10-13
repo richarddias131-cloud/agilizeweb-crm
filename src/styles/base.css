@@ -9,49 +9,54 @@ html {
   text-size-adjust: 100%;
 }
 
+/* Fundo com a grade técnica da marca (linhas finas a cada 40px; nunca em cards). */
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--ink);
+  background-color: var(--ground);
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 40px 40px;
+  color: var(--text);
   font-family: var(--font);
   font-weight: 400;
   font-size: 15px;
-  line-height: 1.5;
+  line-height: 24px;
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
 }
 
 ::selection {
-  background: var(--em);
-  color: var(--on-em);
+  background: var(--gold);
+  color: var(--on-gold);
 }
 
 :focus-visible {
-  outline: 2px solid var(--em);
-  outline-offset: 3px;
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
 }
 
+/* Títulos: Geist 600, espaçamento negativo apertado, em frase. */
 h1,
 h2,
 h3,
 h4 {
   margin: 0;
-  font-weight: 300;
-  letter-spacing: -0.035em;
+  font-weight: 600;
   line-height: 1.15;
-  word-spacing: 0.04em;
 }
 h1 {
-  font-size: clamp(1.75rem, 1.4rem + 1.4vw, 2.4rem);
+  font-size: clamp(1.75rem, 1.35rem + 1.3vw, 2.25rem);
+  letter-spacing: -0.035em;
 }
 h2 {
-  font-size: 1.4rem;
-  letter-spacing: -0.03em;
+  font-size: 1.375rem;
+  line-height: 28px;
+  letter-spacing: -0.01em;
 }
 h3 {
-  font-size: 1.1rem;
-  letter-spacing: -0.02em;
-  font-weight: 400;
+  font-size: 1.0625rem;
+  line-height: 24px;
 }
 
 p {
@@ -64,7 +69,7 @@ a {
 
 b,
 strong {
-  font-weight: 500;
+  font-weight: 600;
 }
 
 button,
@@ -79,6 +84,11 @@ button {
   cursor: pointer;
 }
 
+code {
+  font-family: var(--mono);
+  font-size: 0.92em;
+}
+
 .mono {
   font-family: var(--mono);
 }
@@ -89,6 +99,10 @@ button {
 
 .muted {
   color: var(--muted);
+}
+
+.ouro {
+  color: var(--gold);
 }
 
 .sr-only {
@@ -103,25 +117,21 @@ button {
   border: 0;
 }
 
-/* ---------- Eyebrow / rótulo ---------- */
+/* ---------- Overline (rótulo mono em ouro: "01 / Hoje") ---------- */
 .eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   font-family: var(--mono);
-  font-size: 0.75rem;
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--em-text);
-}
-.eyebrow::before {
-  content: '';
-  width: 28px;
-  height: 1px;
-  background: currentColor;
+  letter-spacing: 0.08em;
+  color: var(--gold);
 }
 
-/* ---------- Botões ---------- */
+/* ---------- Botões (cr-btn) ---------- */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -129,65 +139,64 @@ button {
   gap: 8px;
   min-height: 44px;
   padding: 0 20px;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   border: 1px solid transparent;
   background: none;
-  font-weight: 500;
-  font-size: 0.95rem;
+  font: 600 14px/20px var(--font);
+  letter-spacing: 0.01em;
   white-space: nowrap;
   text-decoration: none;
   transition:
-    background var(--dur) var(--ease),
-    box-shadow var(--dur) var(--ease),
-    border-color var(--dur) var(--ease),
-    opacity var(--dur) var(--ease);
+    background-color var(--dur) ease,
+    border-color var(--dur) ease,
+    color var(--dur) ease,
+    opacity var(--dur) ease;
 }
-.btn:disabled {
-  opacity: 0.5;
+.btn:disabled,
+.btn[aria-disabled='true'] {
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
 .btn-primary {
-  background: var(--em);
-  color: var(--on-em);
+  background: var(--gold);
+  color: var(--on-gold);
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--gold-strong);
 }
 .btn-primary .arrow {
   display: inline-block;
-  transition: transform var(--dur) var(--ease);
-}
-.btn-primary:hover:not(:disabled) {
-  box-shadow: 0 6px 22px -8px color-mix(in srgb, var(--em) 70%, transparent);
-}
-.btn-primary:hover:not(:disabled) .arrow {
-  transform: translateX(4px);
 }
 
+/* Secundário (contorno) */
 .btn-ghost {
-  border-color: var(--rule);
-  color: var(--ink);
+  border-color: var(--line-strong);
+  color: var(--text);
 }
 .btn-ghost:hover:not(:disabled) {
-  border-color: var(--muted);
+  border-color: var(--text-muted);
+  background: var(--surface-raised);
 }
 
 .btn-danger {
-  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
-  color: var(--danger-text);
+  border-color: color-mix(in srgb, var(--negative) 55%, transparent);
+  color: var(--negative);
 }
 .btn-danger:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--danger) 10%, transparent);
+  background: var(--negative-soft);
 }
 
 .btn-sm {
   min-height: 36px;
   padding: 0 14px;
-  font-size: 0.85rem;
+  font-size: 13px;
 }
 
 .btn-lg {
-  min-height: 56px;
+  min-height: 52px;
   padding: 0 28px;
-  font-size: 1.05rem;
+  font-size: 15px;
 }
 
 .btn-block {
@@ -198,166 +207,174 @@ button {
   width: 44px;
   min-height: 44px;
   padding: 0;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   display: inline-grid;
   place-items: center;
   border: 1px solid transparent;
   background: none;
-  color: var(--ink);
+  color: var(--text-muted);
+  transition: background-color var(--dur) ease, color var(--dur) ease;
 }
 .btn-icon:hover {
-  background: var(--soft);
+  background: var(--surface-raised);
+  color: var(--text);
 }
 
-/* Link com sublinhado esmeralda que preenche no hover (.ulink do site) */
+/* Link de ação (cr-btn--ghost): texto em ouro */
 .ulink {
-  position: relative;
   justify-self: start;
   align-self: start;
-  gap: 6px;
   display: inline-flex;
   align-items: center;
+  gap: 6px;
   min-height: 44px;
   padding: 0;
   border: 0;
   background: none;
-  font-weight: 500;
-  color: var(--ink);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--gold);
   text-decoration: none;
-  background-image: linear-gradient(var(--em), var(--em));
-  background-size: 100% 2px;
-  background-position: 0 calc(50% + 0.75em);
-  background-repeat: no-repeat;
-  transition: background-size var(--dur) var(--ease), background-position var(--dur) var(--ease);
+  transition: color var(--dur) ease;
 }
 .ulink:hover {
-  background-size: 100% 1.4em;
-  background-position: 0 50%;
-  color: var(--on-em);
+  color: var(--gold-strong);
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
-/* ---------- Cards ---------- */
+/* ---------- Cards (surface, separados por line, sem sombra) ---------- */
 .card {
-  background: var(--bg);
-  border: 1px solid var(--rule);
+  background: var(--card);
+  border: 1px solid var(--line);
   border-radius: var(--radius);
 }
 .card-lg {
   border-radius: var(--radius-lg);
 }
 .card-pad {
-  padding: 20px;
+  padding: 24px;
 }
 .rows > * + * {
-  border-top: 1px solid var(--rule);
+  border-top: 1px solid var(--line);
 }
 
-/* ---------- Badges ---------- */
+/* ---------- Tags (cr-tag) ---------- */
 .badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   height: 24px;
-  padding: 0 10px;
-  border: 1px solid var(--rule);
-  border-radius: 999px;
-  font-family: var(--mono);
-  font-size: 0.7rem;
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  font: 500 11px/16px var(--mono);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--muted);
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
   white-space: nowrap;
 }
 .badge-em {
-  background: var(--em-soft);
-  border-color: transparent;
-  color: var(--em-text);
+  background: var(--gold-soft);
+  color: var(--gold);
 }
 .badge-danger {
-  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
-  color: var(--danger-text);
+  background: var(--negative-soft);
+  color: var(--negative);
 }
+.badge-ok {
+  background: var(--positive-soft);
+  color: var(--positive);
+}
+/* Status: ponto de 6px em ouro */
 .dot {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: var(--em);
+  background: var(--gold);
   flex: none;
 }
 
-/* ---------- Formulários ---------- */
+/* ---------- Formulários (cr-field) ---------- */
 .field {
   display: grid;
   gap: 6px;
 }
 .field > label,
 .label {
-  font-family: var(--mono);
-  font-size: 0.72rem;
+  font: 500 11px/16px var(--mono);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--muted);
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
 }
 .input,
 .select,
 .textarea {
   width: 100%;
   min-height: 44px;
-  padding: 10px 14px;
-  border: 1px solid var(--rule);
-  border-radius: 12px;
-  background: var(--bg);
+  padding: 10px 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
   font-size: 16px; /* evita zoom no iOS */
-  transition: border-color var(--dur) var(--ease);
+  transition: border-color var(--dur) ease;
+}
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--text-subtle);
 }
 .textarea {
   min-height: 96px;
   resize: vertical;
-  line-height: 1.5;
+  line-height: 24px;
 }
 .input:hover,
 .select:hover,
 .textarea:hover {
-  border-color: var(--muted);
+  border-color: var(--text-muted);
 }
 .input:focus-visible,
 .select:focus-visible,
 .textarea:focus-visible {
-  outline: 2px solid var(--em);
-  outline-offset: 1px;
-  border-color: transparent;
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-color: var(--gold);
 }
 .input[aria-invalid='true'] {
-  border-color: var(--danger);
+  border-color: var(--negative);
 }
 .hint {
-  font-size: 0.82rem;
-  color: var(--muted);
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-subtle);
 }
 .hint-error {
-  font-size: 0.82rem;
-  color: var(--danger-text);
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--negative);
 }
 
-/* ---------- Barra de progresso (kit do site) ---------- */
+/* ---------- Barra de progresso ---------- */
 .progress {
   height: 6px;
-  border-radius: 999px;
-  background: var(--soft);
+  border-radius: var(--radius-xs, 2px);
+  background: var(--surface-raised);
   overflow: hidden;
 }
 .progress > span {
   display: block;
   height: 100%;
-  background: var(--em);
-  border-radius: 999px;
+  background: var(--gold);
+  border-radius: var(--radius-xs, 2px);
   transition: width 400ms var(--ease);
 }
 
 /* ---------- Skeleton ---------- */
 .skeleton {
-  border-radius: 8px;
-  background: linear-gradient(90deg, var(--soft) 25%, var(--rule) 50%, var(--soft) 75%);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--surface-raised) 25%, var(--line) 50%, var(--surface-raised) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.2s linear infinite;
 }
@@ -372,11 +389,11 @@ button {
   display: grid;
   justify-items: start;
   gap: 14px;
-  padding: 28px 20px;
+  padding: 28px 24px;
 }
 .empty p {
   color: var(--muted);
-  max-width: 44ch;
+  max-width: 48ch;
 }
 
 /* ---------- Utilitários ---------- */

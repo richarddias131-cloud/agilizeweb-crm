@@ -10,10 +10,10 @@ export type Escopo = (typeof ESCOPOS)[number]
 
 const ALFABETO = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
 
-/** agz_ + 40 caracteres aleatórios (≈ 238 bits). */
+/** crb_ + 40 caracteres aleatórios (≈ 238 bits). */
 function gerarTextoChave(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(40))
-  return 'agz_' + Array.from(bytes, (b) => ALFABETO[b % ALFABETO.length]).join('')
+  return 'crb_' + Array.from(bytes, (b) => ALFABETO[b % ALFABETO.length]).join('')
 }
 
 async function sha256Hex(texto: string): Promise<string> {

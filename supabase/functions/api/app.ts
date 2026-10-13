@@ -108,7 +108,7 @@ export function criarApp(deps: Deps): (req: Request) => Promise<Response> {
 
       // Autenticação
       const auth = req.headers.get('authorization') ?? ''
-      const m = auth.match(/^Bearer\s+(agz_[A-Za-z0-9_-]{20,})$/)
+      const m = auth.match(/^Bearer\s+(crb_[A-Za-z0-9_-]{20,})$/)
       if (!m) throw erros.naoAutenticado()
       chave = await deps.banco.chavePorHash(await sha256Hex(m[1]!))
       const agora = deps.agora()

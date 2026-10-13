@@ -24,7 +24,7 @@ export const rotasFila: Rota[] = [
       }
 
       const [templates, servicos] = await Promise.all([banco.templates(ctx.userId), banco.servicos(ctx.userId)])
-      const assinatura = ctx.config?.assinatura ?? 'Richard | AgilizeWeb'
+      const assinatura = ctx.config?.assinatura ?? 'Richard | CRESBI'
 
       const item = (i: ItemFila) => {
         const t = i.acao.template_chave ? templates.find((x) => x.chave === i.acao.template_chave && x.ativo) : undefined

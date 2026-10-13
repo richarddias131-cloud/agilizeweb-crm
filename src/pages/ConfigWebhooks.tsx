@@ -42,7 +42,7 @@ export function ConfigWebhooks() {
         <div className="stack" style={{ gap: 4 }}>
           <h2 className="bloco-titulo">Webhooks</h2>
           <p className="muted" style={{ fontSize: '.9rem' }}>
-            O CRM avisa o agente (ou o n8n) quando algo acontece. Assinatura HMAC-SHA256 no header <code className="mono">X-Agilize-Assinatura</code>.
+            O CRM avisa o agente (ou o n8n) quando algo acontece. Assinatura HMAC-SHA256 no header <code className="mono">X-Cresbi-Assinatura</code>.
           </p>
         </div>
         <button type="button" className="btn btn-ghost" onClick={() => setNovo(true)}>

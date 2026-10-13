@@ -1,49 +1,123 @@
-:root {
-  --bg: #ffffff;
-  --ink: #111815;
-  --muted: #6b7872;
-  --rule: #e6eae8;
-  --soft: #f3f6f4;
-  --em: #2ee59d;
-  --em-text: #087f55;
-  --on-em: #06100d;
-  --danger: #e5484d;
-  --font: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
-  --mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
-  --ease: cubic-bezier(0.22, 0.7, 0.2, 1);
+/*
+ * Tokens do CRM — identidade CRESBI "Ouro champanhe · Tech".
+ * Fonte da verdade: cresbi-design-system/tokens.css (repositório cresbi-site).
+ * Tema escuro é o padrão; claro com data-theme="light" (ou "sistema" com SO claro).
+ * Os nomes antigos (--bg, --ink, --em…) continuam valendo e apontam para os da marca.
+ */
+@font-face {
+  font-family: 'Geist';
+  src: url('/cresbi-crm/fonts/Geist-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('/cresbi-crm/fonts/GeistMono-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
 
-  --em-soft: color-mix(in srgb, var(--em) 16%, transparent);
-  --danger-text: #c62f34;
-  --radius: 14px;
-  --radius-lg: 20px;
-  --dur: 200ms;
+:root {
+  /* Marca (escuro) */
+  --ground: #0a0a0b;
+  --surface: #141416;
+  --surface-raised: #1a1a1d;
+  --line: #26262b;
+  --line-strong: #6e6b72;
+  --text: #f2efe8;
+  --text-muted: #a6a29a;
+  --text-subtle: #85817a;
+  --gold: #c9a961;
+  --gold-strong: #ddbf7a;
+  --gold-deep: #6e5a32;
+  --gold-soft: #221d13;
+  --on-gold: #14110a;
+  --positive: #58c4b8;
+  --positive-soft: #10221f;
+  --negative: #e8875e;
+  --negative-soft: #2a1810;
+  --focus: var(--gold-strong);
+  --shadow-pop: 0 12px 32px rgba(0, 0, 0, 0.55);
+  --grid-line: var(--surface);
+  color-scheme: dark;
+
+  /* Aliases usados pelo CSS do CRM */
+  --bg: var(--ground);
+  --card: var(--surface);
+  --ink: var(--text);
+  --muted: var(--text-muted);
+  --subtle: var(--text-subtle);
+  --rule: var(--line);
+  --soft: var(--surface-raised);
+  --em: var(--gold);
+  --em-text: var(--gold);
+  --on-em: var(--on-gold);
+  --em-soft: var(--gold-soft);
+  --danger: var(--negative);
+  --danger-text: var(--negative);
+
+  --font: 'Geist', 'Helvetica Neue', Arial, sans-serif;
+  --mono: 'Geist Mono', ui-monospace, Menlo, Consolas, monospace;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Cantos quase retos (manual): botões/campos 4px, cards 8px */
+  --radius-sm: 4px;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --dur: 150ms;
   --sidebar-w: 216px;
   --bottomnav-h: 64px;
+}
+
+/* Claro — impressão/PDF e quem preferir */
+:root[data-theme='light'] {
+  --ground: #f6f4ef;
+  --surface: #ffffff;
+  --surface-raised: #eeebe4;
+  --line: #e2ddd3;
+  --line-strong: #827c71;
+  --text: #15140f;
+  --text-muted: #57534b;
+  --text-subtle: #6e6a62;
+  --gold: #7e6026;
+  --gold-strong: #6a4f1c;
+  --gold-deep: #d9c59a;
+  --gold-soft: #f2ead6;
+  --on-gold: #ffffff;
+  --positive: #17736e;
+  --positive-soft: #e0f1ef;
+  --negative: #a84722;
+  --negative-soft: #f8e6dd;
+  --shadow-pop: 0 12px 32px rgba(21, 20, 15, 0.12);
+  --grid-line: var(--surface-raised);
   color-scheme: light;
 }
 
-:root[data-theme='dark'] {
-  --bg: #06100d;
-  --ink: #e6f2ec;
-  --muted: #8fa399;
-  --rule: #1b2a23;
-  --soft: #0b1914;
-  --em-text: #2ee59d;
-  --danger-text: #ff7b7f;
-  color-scheme: dark;
-}
-
-/* Tema "sistema": sem data-theme, segue o SO. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) {
-    --bg: #06100d;
-    --ink: #e6f2ec;
-    --muted: #8fa399;
-    --rule: #1b2a23;
-    --soft: #0b1914;
-    --em-text: #2ee59d;
-    --danger-text: #ff7b7f;
-    color-scheme: dark;
+/* Tema "sistema" (data-theme="system") com o SO no claro */
+@media (prefers-color-scheme: light) {
+  :root[data-theme='system'] {
+    --ground: #f6f4ef;
+    --surface: #ffffff;
+    --surface-raised: #eeebe4;
+    --line: #e2ddd3;
+    --line-strong: #827c71;
+    --text: #15140f;
+    --text-muted: #57534b;
+    --text-subtle: #6e6a62;
+    --gold: #7e6026;
+    --gold-strong: #6a4f1c;
+    --gold-deep: #d9c59a;
+    --gold-soft: #f2ead6;
+    --on-gold: #ffffff;
+    --positive: #17736e;
+    --positive-soft: #e0f1ef;
+    --negative: #a84722;
+    --negative-soft: #f8e6dd;
+    --shadow-pop: 0 12px 32px rgba(21, 20, 15, 0.12);
+    --grid-line: var(--surface-raised);
+    color-scheme: light;
   }
 }
 

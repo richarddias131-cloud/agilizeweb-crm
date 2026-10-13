@@ -9,4 +9,4 @@ export function linkWhatsappWeb(numero: string, texto: string): string {
 }
 
 /** Nome da aba reutilizada pelo WhatsApp Web (não acumula abas). */
-export const ABA_WHATSAPP = 'agilize-wa'
+export const ABA_WHATSAPP = 'cresbi-wa'

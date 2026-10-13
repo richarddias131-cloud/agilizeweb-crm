@@ -1,13 +1,13 @@
-// Tudo o que identifica a agência fica aqui. Trocar o nome = editar este arquivo.
+// Tudo o que identifica a marca fica aqui. Trocar o nome = editar este arquivo.
 export const BRAND = {
-  nome: 'AgilizeWeb',
-  logoParte1: 'agilize',
-  logoParte2: 'web',
+  /** Sempre em caixa alta (manual da marca). */
+  nome: 'CRESBI',
   produto: 'CRM',
   dono: 'Richard',
-  /** WhatsApp da agência, normalizado (55DDDNUMERO). Preencher. */
-  whatsapp: '',
+  /** WhatsApp da CRESBI, normalizado (55DDDNUMERO). */
+  whatsapp: '5511932317374',
   /** Assinatura padrão das mensagens ({{assinatura}}). */
-  assinatura: 'Richard | AgilizeWeb',
-  site: 'https://richarddias131-cloud.github.io/agilizeweb-site/',
+  assinatura: 'Richard | CRESBI',
+  site: 'https://cresbi.com.br',
+  instagram: '@cresbi.oficial',
 } as const

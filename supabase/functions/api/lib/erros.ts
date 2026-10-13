@@ -15,7 +15,7 @@ export class ErroApi extends Error {
 
 export const erros = {
   naoAutenticado: () =>
-    new ErroApi(401, 'nao_autenticado', 'Envie o header Authorization: Bearer agz_<sua_chave>.'),
+    new ErroApi(401, 'nao_autenticado', 'Envie o header Authorization: Bearer crb_<sua_chave>.'),
   chaveInvalida: () =>
     new ErroApi(401, 'chave_invalida', 'Chave de API inválida, revogada ou expirada. Peça uma nova chave ao Richard em Configurações → API e agente.'),
   semEscopo: (escopo: string) =>

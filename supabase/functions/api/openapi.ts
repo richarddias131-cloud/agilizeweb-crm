@@ -231,7 +231,7 @@ export function especificacaoOpenApi(servidor = 'https://SEU-PROJETO.supabase.co
   return {
     openapi: '3.1.0',
     info: {
-      title: 'API do CRM AgilizeWeb',
+      title: 'API do CRM CRESBI',
       version: VERSAO_API,
       description:
         'API para o Grok Bot (ou outro agente/automação) operar o CRM com segurança. JSON com campos em português; datas ISO 8601; valores como número. ' +
@@ -472,7 +472,7 @@ export function especificacaoOpenApi(servidor = 'https://SEU-PROJETO.supabase.co
         get: op({ summary: 'Templates ativos', tags: ['Catálogo'], escopo: 'leitura', responses: { '200': resp('OK', lista('Template')), ...ERROS_COMUNS }, ferramenta: { nome: 'listar_templates', descricao: 'Lista os templates de mensagem ativos (id, chave, nome e corpo com variáveis).' } }),
       },
       '/servicos': {
-        get: op({ summary: 'Catálogo e preços (somente leitura)', tags: ['Catálogo'], escopo: 'leitura', responses: { '200': resp('OK', lista('Servico')), ...ERROS_COMUNS }, ferramenta: { nome: 'listar_servicos', descricao: 'Catálogo de serviços e preços da AgilizeWeb. O agente nunca altera preços.' } }),
+        get: op({ summary: 'Catálogo e preços (somente leitura)', tags: ['Catálogo'], escopo: 'leitura', responses: { '200': resp('OK', lista('Servico')), ...ERROS_COMUNS }, ferramenta: { nome: 'listar_servicos', descricao: 'Catálogo de serviços e preços da CRESBI. O agente nunca altera preços.' } }),
       },
       '/mensagens/preparar': {
         post: op({
@@ -599,7 +599,7 @@ export function especificacaoOpenApi(servidor = 'https://SEU-PROJETO.supabase.co
     },
     components: {
       securitySchemes: {
-        chaveApi: { type: 'http', scheme: 'bearer', bearerFormat: 'agz_<chave>', description: 'Chave gerada em Configurações → API e agente.' },
+        chaveApi: { type: 'http', scheme: 'bearer', bearerFormat: 'crb_<chave>', description: 'Chave gerada em Configurações → API e agente.' },
       },
       parameters: {
         IdempotencyKey: {

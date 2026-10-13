@@ -30,7 +30,7 @@ import {
   type TipoInteracao,
 } from '../../shared/dominio.ts'
 import { formatarTelefone } from '../../shared/phone.ts'
-import { dataHora, haQuanto, moeda, quando } from '../lib/formato'
+import { dataHora, haQuanto, moeda, precoCatalogo, quando } from '../lib/formato'
 
 type Ficha = { lead: Lead; interacoes: Interacao[]; tarefas: Tarefa[]; vendas: Venda[] }
 
@@ -322,7 +322,7 @@ export function LeadFicha() {
               tipo="select"
               valor={lead.servico_interesse}
               exibir={servicos?.find((s) => s.id === lead.servico_interesse)?.nome}
-              opcoes={servicos?.map((s) => ({ valor: s.id, rotulo: `${s.nome} — ${moeda(s.preco)}` })) ?? []}
+              opcoes={servicos?.map((s) => ({ valor: s.id, rotulo: `${s.nome} — ${precoCatalogo(s.preco)}` })) ?? []}
               salvar={texto('servico_interesse')}
             />
             <CampoEditavel

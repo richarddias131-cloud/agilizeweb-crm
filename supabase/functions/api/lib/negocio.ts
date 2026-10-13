@@ -66,7 +66,7 @@ export async function prepararMensagem(
     segmento: lead.segmento,
     nota_auditoria: lead.nota_auditoria,
     servico: servico ? { nome: servico.nome, preco: Number(servico.preco) } : null,
-    assinatura: ctx.config?.assinatura ?? 'Richard | AgilizeWeb',
+    assinatura: ctx.config?.assinatura ?? 'Richard | CRESBI',
   })
   return {
     lead_id: lead.id,

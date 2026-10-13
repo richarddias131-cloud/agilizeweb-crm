@@ -141,7 +141,7 @@ export function Hoje() {
           <p>
             {fila!.novos_total === 0
               ? 'Nada pendente e nenhum lead novo na base. Cadastre ou importe uma lista para abordar hoje.'
-              : 'Meta do dia batida e nada pendente. Bom trabalho!'}
+              : 'Meta do dia batida e nada pendente.'}
           </p>
           <div className="row wrap">
             <button type="button" className="btn btn-primary" onClick={abrir}>

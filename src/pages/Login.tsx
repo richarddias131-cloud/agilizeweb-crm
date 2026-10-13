@@ -32,7 +32,7 @@ export function Login() {
         <Logo />
         <div className="stack" style={{ '--gap': '6px' } as CSSProperties}>
           <span className="eyebrow">01 / Entrar</span>
-          <h1>Bom te ver de volta.</h1>
+          <h1>Acesse o CRM.</h1>
         </div>
         <div className="field">
           <label htmlFor="email">E-mail</label>

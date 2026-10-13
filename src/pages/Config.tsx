@@ -12,7 +12,7 @@ import { ESTAGIOS, ESTAGIO_ROTULO, ehEstagio } from '../../shared/dominio.ts'
 import { VARIAVEIS, VARIAVEL_DESCRICAO, renderizarTemplate } from '../../shared/template.ts'
 import { normalizarTelefone, formatarTelefone } from '../../shared/phone.ts'
 import { BRAND } from '../config/brand'
-import { moeda } from '../lib/formato'
+import { precoCatalogo } from '../lib/formato'
 import { ConfigApi } from './ConfigApi'
 
 const ABAS = [
@@ -452,7 +452,7 @@ function LinhaServico({ servico, proximaOrdem, aoCriar }: { servico: Servico | n
           <span className="muted">/mês</span>
         </div>
       ) : (
-        <span className="muted num" style={{ fontSize: '.85rem' }}>{servico ? `Pagamento único · ${moeda(servico.preco)}` : ''}</span>
+        <span className="muted num" style={{ fontSize: '.85rem' }}>{servico ? `Pagamento único · ${precoCatalogo(servico.preco)}` : ''}</span>
       )}
       <label className="toggle">
         <input type="checkbox" checked={f.ativo} onChange={(e) => set('ativo', e.target.checked)} />

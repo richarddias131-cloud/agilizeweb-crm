@@ -24,9 +24,9 @@ export class BancoMemoria implements Banco {
   vendasL: Venda[] = []
   agora = () => new Date()
 
-  /** Cria uma chave e devolve o texto completo (agz_...). */
+  /** Cria uma chave e devolve o texto completo (crb_...). */
   async criarChave(escopos: string[], o: Partial<ApiChave> = {}, userId = USER): Promise<string> {
-    const textoChave = `agz_${crypto.randomUUID().replace(/-/g, '')}`
+    const textoChave = `crb_${crypto.randomUUID().replace(/-/g, '')}`
     const t = this.agora().toISOString()
     this.chaves.push({
       id: id(),
@@ -56,7 +56,7 @@ export class BancoMemoria implements Banco {
       meta_diaria: 20,
       whatsapp_modo: 'auto',
       tema: 'system',
-      assinatura: 'Richard | AgilizeWeb',
+      assinatura: 'Richard | CRESBI',
       whatsapp_proprio: null,
       agente_pausado: false,
       permitir_envio_direto_apos_resposta: false,

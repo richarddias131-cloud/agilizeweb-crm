@@ -49,25 +49,27 @@
   gap: 12px;
   min-height: 48px;
   padding: 6px 6px 6px 18px;
-  border-radius: 14px;
-  background: var(--ink);
-  color: var(--bg);
+  border-radius: var(--radius);
+  border: 1px solid var(--line-strong);
+  background: var(--surface-raised);
+  color: var(--text);
   font-size: 0.92rem;
-  box-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.35);
+  box-shadow: var(--shadow-pop);
   animation: toast-in 200ms var(--ease);
 }
 .toast > span {
   flex: 1;
 }
 .toast-erro {
-  background: var(--danger);
-  color: #fff;
+  background: var(--negative-soft);
+  border-color: var(--negative);
+  color: var(--text);
 }
 .toast-acao {
   min-height: 36px;
   padding: 0 14px;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   background: var(--em);
   color: var(--on-em);
   font-weight: 500;
@@ -80,7 +82,7 @@
   color: inherit;
   opacity: 0.7;
   font-size: 1.3rem;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
 }
 @keyframes toast-in {
   from {
@@ -94,8 +96,8 @@
   padding: 0;
   border: 1px solid var(--rule);
   border-radius: var(--radius-lg);
-  background: var(--bg);
-  color: var(--ink);
+  background: var(--surface);
+  color: var(--text);
   width: min(calc(100% - 32px), 520px);
   max-height: min(88dvh, 760px);
 }
@@ -103,7 +105,7 @@
   width: min(calc(100% - 32px), 760px);
 }
 .modal::backdrop {
-  background: rgb(6 16 13 / 0.45);
+  background: rgb(0 0 0 / 0.6);
   backdrop-filter: blur(2px);
 }
 .modal[open] {
@@ -166,8 +168,8 @@
   min-height: 52px;
   padding: 10px 14px;
   border: 1px solid var(--rule);
-  border-radius: 12px;
-  background: var(--bg);
+  border-radius: var(--radius);
+  background: var(--surface);
   text-align: left;
   transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
 }
@@ -190,10 +192,10 @@
   width: 56px;
   height: 56px;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   background: var(--em);
   color: var(--on-em);
-  box-shadow: 0 8px 24px -8px color-mix(in srgb, var(--em) 80%, transparent);
+  box-shadow: var(--shadow-pop);
   transition: transform var(--dur) var(--ease);
 }
 .fab:active {
@@ -263,7 +265,7 @@
 .busca .input {
   padding-left: 42px;
   padding-right: 44px;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
 }
 .busca-kbd {
   position: absolute;
@@ -290,7 +292,7 @@
   flex: none;
   min-height: 40px;
   padding: 6px 12px;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   font-size: 0.88rem;
 }
 
@@ -410,7 +412,7 @@
 }
 .ficha-nota-valor {
   font-size: 2.2rem;
-  font-weight: 300;
+  font-weight: 600;
   letter-spacing: -0.04em;
   line-height: 1;
   color: var(--em-text);
@@ -446,7 +448,7 @@
   min-height: 40px;
   padding: 0 14px;
   border: 1px solid var(--rule);
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   background: none;
   font-family: var(--mono);
   font-size: 0.72rem;
@@ -566,7 +568,7 @@
   place-items: center;
   width: 28px;
   height: 28px;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--rule);
   color: var(--muted);
 }
@@ -619,7 +621,7 @@
   min-height: 36px;
   padding: 0 14px;
   border: 1px solid var(--rule);
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   background: none;
   font-size: 0.85rem;
   color: var(--muted);
@@ -648,9 +650,9 @@
   justify-content: space-between;
   gap: 12px;
   padding: 12px 14px;
-  border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--em) 45%, transparent);
-  background: color-mix(in srgb, var(--em) 7%, transparent);
+  border-radius: var(--radius);
+  border: 1px solid var(--gold-deep);
+  background: var(--gold-soft);
   font-size: 0.92rem;
 }
 
@@ -667,8 +669,8 @@
   padding: 16px;
   border: 1px solid var(--em);
   border-radius: var(--radius-lg);
-  background: var(--bg);
-  box-shadow: 0 18px 50px -20px rgb(0 0 0 / 0.35);
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
   animation: toast-in 200ms var(--ease);
 }
 .barra-envio-texto {
@@ -721,7 +723,7 @@ body:has(.barra-envio) .toasts {
   font-weight: 400;
 }
 .bloco-destaque {
-  border-color: color-mix(in srgb, var(--em) 60%, transparent);
+  border-color: var(--gold-deep);
 }
 .bloco-titulo {
   display: flex;
@@ -993,7 +995,7 @@ body:has(.barra-envio) .toasts {
   justify-self: start;
   max-width: 520px;
   padding: 12px 14px;
-  border-radius: 14px 14px 14px 4px;
+  border-radius: var(--radius) var(--radius) var(--radius) var(--radius-xs, 2px);
   background: var(--soft);
   border: 1px solid var(--rule);
   white-space: pre-wrap;
@@ -1056,8 +1058,8 @@ body:has(.barra-envio) .toasts {
 .interruptor span[aria-hidden] {
   width: 48px;
   height: 28px;
-  border-radius: 999px;
-  background: var(--rule);
+  border-radius: var(--radius-pill, 999px);
+  background: var(--line-strong);
   position: relative;
   transition: background var(--dur) var(--ease);
 }
@@ -1069,14 +1071,14 @@ body:has(.barra-envio) .toasts {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: var(--bg);
-  box-shadow: 0 1px 3px rgb(0 0 0 / 0.25);
+  background: var(--text);
   transition: transform var(--dur) var(--ease);
 }
 .interruptor input:checked + span[aria-hidden] {
   background: var(--em);
 }
 .interruptor input:checked + span[aria-hidden]::after {
+  background: var(--on-gold);
   transform: translateX(20px);
 }
 .interruptor input:focus-visible + span[aria-hidden] {
@@ -1112,9 +1114,9 @@ body:has(.barra-envio) .toasts {
   align-items: center;
   gap: 10px;
   padding: 12px 14px;
-  border-radius: 12px;
+  border-radius: var(--radius);
   border: 1px solid var(--em);
-  background: color-mix(in srgb, var(--em) 7%, transparent);
+  background: var(--gold-soft);
 }
 .chave-mostrada code {
   flex: 1;
@@ -1195,13 +1197,14 @@ body:has(.barra-envio) .toasts {
   min-height: 240px;
   padding: 12px;
   border-radius: var(--radius);
-  background: var(--soft);
-  border: 1px dashed transparent;
+  background: color-mix(in srgb, var(--ground) 70%, transparent);
+  border: 1px solid var(--line);
   transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
 }
 .coluna-sobre {
-  border-color: var(--em);
-  background: color-mix(in srgb, var(--em) 8%, var(--soft));
+  border-color: var(--gold);
+  border-style: dashed;
+  background: var(--gold-soft);
 }
 .coluna-topo {
   display: flex;
@@ -1232,9 +1235,9 @@ body:has(.barra-envio) .toasts {
   display: grid;
   gap: 4px;
   padding: 12px;
-  border-radius: 12px;
+  border-radius: var(--radius);
   border: 1px solid var(--rule);
-  background: var(--bg);
+  background: var(--surface);
   cursor: grab;
   transition: border-color var(--dur) var(--ease);
   touch-action: manipulation;
@@ -1245,7 +1248,7 @@ body:has(.barra-envio) .toasts {
 .cartao-sobreposto {
   cursor: grabbing;
   border-color: var(--em);
-  box-shadow: 0 16px 40px -18px rgb(0 0 0 / 0.4);
+  box-shadow: var(--shadow-pop);
   transform: rotate(1.5deg);
 }
 .arrastando {
@@ -1292,7 +1295,7 @@ body:has(.barra-envio) .toasts {
   min-height: 40px;
   padding: 6px 10px;
   font-size: 0.85rem;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
 }
 
 /* ---------- Vendas ---------- */
@@ -1308,7 +1311,7 @@ body:has(.barra-envio) .toasts {
 }
 .indicador-valor {
   font-size: clamp(1.15rem, 1rem + 0.8vw, 1.5rem);
-  font-weight: 300;
+  font-weight: 600;
   letter-spacing: -0.03em;
 }
 .indicador-destaque .indicador-valor {
@@ -1319,7 +1322,7 @@ body:has(.barra-envio) .toasts {
   align-items: center;
   gap: 4px;
   border: 1px solid var(--rule);
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   padding: 2px;
 }
 .seletor-mes-rotulo {
@@ -1350,15 +1353,38 @@ body:has(.barra-envio) .toasts {
   gap: 8px;
   padding: 6px 12px;
 }
+.venda-servico {
+  flex-wrap: wrap;
+}
+.venda-servico-nome {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.venda-preco {
+  width: 136px;
+  gap: 6px;
+}
+@media (max-width: 520px) {
+  .venda-servico-nome {
+    flex-basis: 100%;
+  }
+  .venda-preco {
+    margin-left: auto;
+  }
+}
+.venda-preco .input {
+  min-height: 36px;
+  padding: 6px 10px;
+}
 .venda-servico.marcado {
-  background: color-mix(in srgb, var(--em) 6%, transparent);
+  background: var(--gold-soft);
 }
 .qtd {
   display: inline-flex;
   align-items: center;
   gap: 2px;
   border: 1px solid var(--rule);
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
 }
 .qtd .btn-icon {
   width: 36px;
@@ -1423,7 +1449,7 @@ body:has(.barra-envio) .toasts {
 }
 .zona-arquivo-ativa {
   border-color: var(--em);
-  background: color-mix(in srgb, var(--em) 6%, transparent);
+  background: var(--gold-soft);
 }
 .zona-arquivo p {
   color: var(--ink);
@@ -1466,7 +1492,7 @@ body:has(.barra-envio) .toasts {
   align-items: flex-start;
   gap: 10px;
   padding: 12px 14px;
-  border-radius: 12px;
+  border-radius: var(--radius);
   border: 1px solid color-mix(in srgb, var(--danger) 50%, transparent);
   background: color-mix(in srgb, var(--danger) 8%, transparent);
   color: var(--ink);
@@ -1572,10 +1598,10 @@ body:has(.barra-envio) .toasts {
   display: grid;
   gap: 2px;
   padding: 8px 10px;
-  border-radius: 10px;
-  border: 1px solid var(--rule);
-  background: var(--bg);
-  box-shadow: 0 10px 30px -14px rgb(0 0 0 / 0.35);
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-pop);
   font-size: 0.8rem;
   white-space: nowrap;
   pointer-events: none;
@@ -1603,7 +1629,7 @@ body:has(.barra-envio) .toasts {
   position: fixed;
   inset: 0;
   z-index: 300;
-  background: rgb(6 16 13 / 0.45);
+  background: rgb(0 0 0 / 0.6);
   backdrop-filter: blur(2px);
   display: flex;
   justify-content: center;
@@ -1650,7 +1676,7 @@ body:has(.barra-envio) .toasts {
   gap: 12px;
   min-height: 48px;
   padding: 6px 10px;
-  border-radius: 10px;
+  border-radius: var(--radius);
   cursor: pointer;
   color: var(--muted);
 }

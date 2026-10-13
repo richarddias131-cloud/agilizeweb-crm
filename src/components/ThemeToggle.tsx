@@ -2,8 +2,8 @@ import { useTheme, type Tema } from '../context/ThemeContext'
 import { Icon, type IconName } from './Icon'
 
 const OPCOES: { valor: Tema; rotulo: string; icone: IconName }[] = [
-  { valor: 'light', rotulo: 'Tema claro', icone: 'sol' },
   { valor: 'dark', rotulo: 'Tema escuro', icone: 'lua' },
+  { valor: 'light', rotulo: 'Tema claro', icone: 'sol' },
   { valor: 'system', rotulo: 'Tema do sistema', icone: 'sistema' },
 ]
 

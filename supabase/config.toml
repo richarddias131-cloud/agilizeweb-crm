@@ -1,5 +1,5 @@
 # Configuração mínima para a CLI do Supabase (deploy da Edge Function).
-project_id = "agilizeweb-crm"
+project_id = "cresbi-crm"
 
 [functions.api]
 # O agente autentica com a chave própria (agz_...), não com o JWT do Supabase.

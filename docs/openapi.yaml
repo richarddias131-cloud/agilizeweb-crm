@@ -1,6 +1,6 @@
 openapi: "3.1.0"
 info:
-  title: API do CRM AgilizeWeb
+  title: API do CRM CRESBI
   version: "1.0.0"
   description: "API para o Grok Bot (ou outro agente/automação) operar o CRM com segurança. JSON com campos em português; datas ISO 8601; valores como número. Erros sempre em { erro: { codigo, mensagem, detalhes } }. Todo POST aceita Idempotency-Key (24 h). Limite: 60 requisições/min por chave. Não existe DELETE."
 servers:
@@ -1140,7 +1140,7 @@ paths:
       x-escopo: leitura
       x-ferramenta:
         nome: listar_servicos
-        descricao: Catálogo de serviços e preços da AgilizeWeb. O agente nunca altera preços.
+        descricao: Catálogo de serviços e preços da CRESBI. O agente nunca altera preços.
   "/mensagens/preparar":
     post:
       summary: Preparar mensagem (não envia)
@@ -1658,7 +1658,7 @@ components:
     chaveApi:
       type: http
       scheme: bearer
-      bearerFormat: agz_<chave>
+      bearerFormat: crb_<chave>
       description: Chave gerada em Configurações → API e agente.
   parameters:
     IdempotencyKey:

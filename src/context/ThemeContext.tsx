@@ -3,27 +3,25 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 export type Tema = 'light' | 'dark' | 'system'
 const CHAVE = 'agz-tema'
 
+/** Padrão da marca CRESBI: tema escuro. */
 function lerTema(): Tema {
   try {
     const t = localStorage.getItem(CHAVE)
-    if (t === 'light' || t === 'dark') return t
+    if (t === 'light' || t === 'system') return t
   } catch {
     /* localStorage indisponível */
   }
-  return 'system'
+  return 'dark'
 }
 
 function aplicar(t: Tema) {
-  const root = document.documentElement
-  if (t === 'system') delete root.dataset.theme
-  else root.dataset.theme = t
-  const escuro =
-    t === 'dark' || (t === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', escuro ? '#06100D' : '#FFFFFF')
+  document.documentElement.dataset.theme = t
+  const claro = t === 'light' || (t === 'system' && window.matchMedia('(prefers-color-scheme: light)').matches)
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', claro ? '#F6F4EF' : '#0A0A0B')
 }
 
 type ThemeState = { tema: Tema; setTema: (t: Tema) => void }
-const ThemeCtx = createContext<ThemeState>({ tema: 'system', setTema: () => {} })
+const ThemeCtx = createContext<ThemeState>({ tema: 'dark', setTema: () => {} })
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [tema, setTemaState] = useState<Tema>(lerTema)
@@ -31,7 +29,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     aplicar(tema)
     if (tema !== 'system') return
-    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+    const mq = window.matchMedia('(prefers-color-scheme: light)')
     const onChange = () => aplicar('system')
     mq.addEventListener('change', onChange)
     return () => mq.removeEventListener('change', onChange)
@@ -39,7 +37,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const setTema = useCallback((t: Tema) => {
     try {
-      if (t === 'system') localStorage.removeItem(CHAVE)
+      if (t === 'dark') localStorage.removeItem(CHAVE)
       else localStorage.setItem(CHAVE, t)
     } catch {
       /* ignora */

@@ -1,8 +1,8 @@
-# AgilizeWeb CRM
+# CRESBI CRM
 
-CRM interno da AgilizeWeb para prospectar e acompanhar negócios locais, com API para o agente Grok Bot.
+CRM interno da CRESBI para prospectar e acompanhar negócios locais, com API para o agente Grok Bot.
 
-- **App:** https://richarddias131-cloud.github.io/agilizeweb-crm/
+- **App:** https://richarddias131-cloud.github.io/cresbi-crm/
 - **Configuração inicial:** veja [SETUP.md](SETUP.md)
 - **Convenções do projeto:** veja [CLAUDE.md](CLAUDE.md)
 

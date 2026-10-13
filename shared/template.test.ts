@@ -8,7 +8,7 @@ const lead = {
   segmento: 'Ótica',
   nota_auditoria: 62,
   servico: { nome: 'Kit Comércio no Mapa', preco: 549.9 },
-  assinatura: 'Richard | AgilizeWeb',
+  assinatura: 'Richard | CRESBI',
 }
 
 describe('renderizarTemplate', () => {
@@ -18,7 +18,7 @@ describe('renderizarTemplate', () => {
       lead,
     )
     expect(r.texto).toBe(
-      'Olá, Marina! Ótica Visão em Campinas (ótica) tirou 62/100. Kit Comércio no Mapa por R$ 549,90. Richard | AgilizeWeb',
+      'Olá, Marina! Ótica Visão em Campinas (ótica) tirou 62/100. Kit Comércio no Mapa por R$ 549,90. Richard | CRESBI',
     )
     expect(r.faltando).toEqual([])
   })

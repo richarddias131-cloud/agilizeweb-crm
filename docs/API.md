@@ -1,4 +1,4 @@
-# API do CRM AgilizeWeb
+# API do CRM CRESBI
 
 API REST para o **Grok Bot** (ou qualquer agente/automação, como o n8n) operar o CRM com segurança. Ela roda numa Edge Function do Supabase e aplica todas as regras no servidor: escopos, opt-out, prospecção fria, limites e "Pausar agente".
 
@@ -11,8 +11,8 @@ API REST para o **Grok Bot** (ou qualquer agente/automação, como o n8n) operar
 Nos exemplos abaixo:
 
 ```bash
-export AGZ_API="https://SEU-PROJETO.supabase.co/functions/v1/api/v1"
-export AGZ_CHAVE="agz_..."
+export CRB_API="https://SEU-PROJETO.supabase.co/functions/v1/api/v1"
+export CRB_CHAVE="crb_..."
 ```
 
 ---
@@ -21,7 +21,7 @@ export AGZ_CHAVE="agz_..."
 
 | Tema | Regra |
 |---|---|
-| Autenticação | `Authorization: Bearer agz_<chave>`. A chave é criada em **Configurações → API e agente** e aparece uma única vez. Revogar corta o acesso na hora. |
+| Autenticação | `Authorization: Bearer crb_<chave>`. A chave é criada em **Configurações → API e agente** e aparece uma única vez. Revogar corta o acesso na hora. |
 | Escopos | `leitura` (consultar), `escrita` (criar/editar), `envio` (WhatsApp direto pelo wa-bridge), `relatorios` (métricas). O Grok começa com `leitura + escrita + relatorios`. |
 | Formato | JSON com campos em português, iguais aos do banco. Datas ISO 8601 com fuso. Valores como número (`549.9`), nunca texto formatado. |
 | Paginação | `?limite=50&cursor=...` → `{ "dados": [...], "proximo_cursor": "..." }`. `proximo_cursor: null` = acabou. |
@@ -61,8 +61,8 @@ Sempre neste formato, com o status HTTP correto:
 ### Sistema
 
 ```bash
-curl "$AGZ_API/health"
-curl "$AGZ_API/openapi.json"
+curl "$CRB_API/health"
+curl "$CRB_API/openapi.json"
 ```
 
 ### Leads
@@ -70,27 +70,27 @@ curl "$AGZ_API/openapi.json"
 **Listar** (escopo `leitura`). Filtros: `estagio`, `cidade`, `segmento`, `tag`, `busca`, `sem_contato_ha_dias`, `atualizado_desde`, `incluir_arquivados`.
 
 ```bash
-curl "$AGZ_API/leads?estagio=novo&cidade=Campinas&limite=20" -H "Authorization: Bearer $AGZ_CHAVE"
-curl "$AGZ_API/leads?sem_contato_ha_dias=7&cursor=eyJ1cGRh..." -H "Authorization: Bearer $AGZ_CHAVE"
+curl "$CRB_API/leads?estagio=novo&cidade=Campinas&limite=20" -H "Authorization: Bearer $CRB_CHAVE"
+curl "$CRB_API/leads?sem_contato_ha_dias=7&cursor=eyJ1cGRh..." -H "Authorization: Bearer $CRB_CHAVE"
 ```
 
 **Lead completo** com as últimas 20 interações e as tarefas abertas:
 
 ```bash
-curl "$AGZ_API/leads/3f1c...-uuid" -H "Authorization: Bearer $AGZ_CHAVE"
+curl "$CRB_API/leads/3f1c...-uuid" -H "Authorization: Bearer $CRB_CHAVE"
 # → { "lead": {...}, "interacoes": [...], "tarefas": [...] }
 ```
 
 **Buscar pelo WhatsApp** (qualquer formato; o servidor normaliza):
 
 ```bash
-curl "$AGZ_API/leads/por-whatsapp/(19)%2099999-9999" -H "Authorization: Bearer $AGZ_CHAVE"
+curl "$CRB_API/leads/por-whatsapp/(19)%2099999-9999" -H "Authorization: Bearer $CRB_CHAVE"
 ```
 
 **Criar ou atualizar (upsert pelo WhatsApp)** (escopo `escrita`). Obrigatórios: `empresa` e `whatsapp`. Se o número já existir, atualiza só os campos enviados e responde `criado: false`.
 
 ```bash
-curl -X POST "$AGZ_API/leads" -H "Authorization: Bearer $AGZ_CHAVE" -H "Content-Type: application/json" \
+curl -X POST "$CRB_API/leads" -H "Authorization: Bearer $CRB_CHAVE" -H "Content-Type: application/json" \
   -H "Idempotency-Key: 6b1d0f2e-7f3a-4c51-9d3b-1a2b3c4d5e6f" \
   -d '{"empresa":"Ótica Visão","whatsapp":"(19) 99999-9999","cidade":"Campinas","uf":"SP","segmento":"Ótica","link_google":"https://maps.google.com/...","nota_auditoria":62}'
 # 201 → { "criado": true, "lead": {...} }   |   200 → { "criado": false, "lead": {...} }
@@ -99,7 +99,7 @@ curl -X POST "$AGZ_API/leads" -H "Authorization: Bearer $AGZ_CHAVE" -H "Content-
 **Criar vários de uma vez** (até 500; mesmo relatório da importação CSV):
 
 ```bash
-curl -X POST "$AGZ_API/leads/lote" -H "Authorization: Bearer $AGZ_CHAVE" -H "Content-Type: application/json" \
+curl -X POST "$CRB_API/leads/lote" -H "Authorization: Bearer $CRB_CHAVE" -H "Content-Type: application/json" \
   -H "Idempotency-Key: 9a1b...-uuid" \
   -d '{"tag":"oticas-campinas-out","leads":[{"empresa":"Ótica A","whatsapp":"19999990001","cidade":"Campinas"},{"empresa":"Ótica B","whatsapp":"(19) 3333-4444"}]}'
 # → { "importados": 2, "duplicados": 0, "invalidos": 0, "ids": [...], "detalhes": { "duplicados": [], "invalidos": [] } }
@@ -108,34 +108,34 @@ curl -X POST "$AGZ_API/leads/lote" -H "Authorization: Bearer $AGZ_CHAVE" -H "Con
 **Editar** (enriquecer). Não muda estágio nem arquiva. `opt_out` só pode virar `true`:
 
 ```bash
-curl -X PATCH "$AGZ_API/leads/<id>" -H "Authorization: Bearer $AGZ_CHAVE" -H "Content-Type: application/json" \
+curl -X PATCH "$CRB_API/leads/<id>" -H "Authorization: Bearer $CRB_CHAVE" -H "Content-Type: application/json" \
   -d '{"instagram":"@oticavisao","tags":["campinas-out"],"proxima_acao":"Enviar auditoria","proxima_acao_em":"2026-10-14T09:00:00-03:00"}'
 ```
 
 **Mudar estágio.** `perdido` exige `motivo_perda`. `ganho` não é aplicado: vira ação pendente (`202`).
 
 ```bash
-curl -X POST "$AGZ_API/leads/<id>/estagio" -H "Authorization: Bearer $AGZ_CHAVE" -H "Content-Type: application/json" \
+curl -X POST "$CRB_API/leads/<id>/estagio" -H "Authorization: Bearer $CRB_CHAVE" -H "Content-Type: application/json" \
   -d '{"estagio":"perdido","motivo_perda":"Já tem fornecedor"}'
 ```
 
 **Arquivar:**
 
 ```bash
-curl -X POST "$AGZ_API/leads/<id>/arquivar" -H "Authorization: Bearer $AGZ_CHAVE"
+curl -X POST "$CRB_API/leads/<id>/arquivar" -H "Authorization: Bearer $CRB_CHAVE"
 ```
 
 **Registrar interação.** Tipos: `nota`, `ligacao`, `auditoria`, `proposta`, `whatsapp_enviado` (aplica a cadência, como o "Enviei"), `whatsapp_recebido` (mesmo efeito do "Respondeu").
 
 ```bash
-curl -X POST "$AGZ_API/leads/<id>/interacoes" -H "Authorization: Bearer $AGZ_CHAVE" -H "Content-Type: application/json" \
+curl -X POST "$CRB_API/leads/<id>/interacoes" -H "Authorization: Bearer $CRB_CHAVE" -H "Content-Type: application/json" \
   -d '{"tipo":"nota","conteudo":"Perfil sem fotos, sem horário e com 3 avaliações. Concorrentes têm 4,8."}'
 ```
 
 **Respondeu.** Estágio vai para `respondeu`, as tentativas zeram, os follow-ups são cancelados e é criada a tarefa "Responder {empresa}":
 
 ```bash
-curl -X POST "$AGZ_API/leads/<id>/respondeu" -H "Authorization: Bearer $AGZ_CHAVE" -H "Content-Type: application/json" \
+curl -X POST "$CRB_API/leads/<id>/respondeu" -H "Authorization: Bearer $CRB_CHAVE" -H "Content-Type: application/json" \
   -d '{"conteudo":"Pode mandar a auditoria!"}'
 ```
 
@@ -144,14 +144,14 @@ curl -X POST "$AGZ_API/leads/<id>/respondeu" -H "Authorization: Bearer $AGZ_CHAV
 A mesma fila da tela **Hoje**, montada pelas mesmas regras: para aprovar, responderam, follow-ups vencidos e de hoje, leads novos até a meta e tarefas. Cada item traz `acao_sugerida`, `template` e `mensagem_sugerida` já renderizada.
 
 ```bash
-curl "$AGZ_API/fila/hoje" -H "Authorization: Bearer $AGZ_CHAVE"
+curl "$CRB_API/fila/hoje" -H "Authorization: Bearer $CRB_CHAVE"
 ```
 
 ### Templates e serviços
 
 ```bash
-curl "$AGZ_API/templates" -H "Authorization: Bearer $AGZ_CHAVE"
-curl "$AGZ_API/servicos"  -H "Authorization: Bearer $AGZ_CHAVE"   # o agente nunca altera preços
+curl "$CRB_API/templates" -H "Authorization: Bearer $CRB_CHAVE"
+curl "$CRB_API/servicos"  -H "Authorization: Bearer $CRB_CHAVE"   # o agente nunca altera preços
 ```
 
 ### Mensagens
@@ -159,7 +159,7 @@ curl "$AGZ_API/servicos"  -H "Authorization: Bearer $AGZ_CHAVE"   # o agente nun
 **Preparar** (escopo `leitura`, não envia nada). Use `template_id`, `template_chave` (`abordagem`, `followup1`, `followup2`, `ultima`, `auditoria`, `proposta_kit`, `pos_venda`) ou `texto` livre com variáveis:
 
 ```bash
-curl -X POST "$AGZ_API/mensagens/preparar" -H "Authorization: Bearer $AGZ_CHAVE" -H "Content-Type: application/json" \
+curl -X POST "$CRB_API/mensagens/preparar" -H "Authorization: Bearer $CRB_CHAVE" -H "Content-Type: application/json" \
   -d '{"lead_id":"<id>","template_chave":"abordagem"}'
 # → { "texto": "Olá, Marina! ...", "faltando": [], "link_wa_me": "...", "link_whatsapp_web": "...", "prospeccao_fria": true }
 ```
@@ -167,7 +167,7 @@ curl -X POST "$AGZ_API/mensagens/preparar" -H "Authorization: Bearer $AGZ_CHAVE"
 **Enviar** (escopo `escrita`). Só envia direto pelo wa-bridge se **todas** as condições valerem: a chave tem `envio`, o lead já respondeu antes, o Richard ligou "permitir envio direto após resposta" e o bridge está online. Caso contrário, cria uma **ação pendente** e responde `202` com o `motivo` (`prospeccao_fria`, `sem_escopo_envio`, `envio_direto_desligado`, `bridge_offline`).
 
 ```bash
-curl -X POST "$AGZ_API/mensagens/enviar" -H "Authorization: Bearer $AGZ_CHAVE" -H "Content-Type: application/json" \
+curl -X POST "$CRB_API/mensagens/enviar" -H "Authorization: Bearer $CRB_CHAVE" -H "Content-Type: application/json" \
   -H "Idempotency-Key: 0d5e...-uuid" \
   -d '{"lead_id":"<id>","template_chave":"abordagem","justificativa":"Perfil sem fotos; concorrentes com nota 4,8."}'
 # 202 → { "enviado": false, "motivo": "prospeccao_fria", "acao_pendente": { "id": "...", "status": "pendente" } }
@@ -178,7 +178,7 @@ curl -X POST "$AGZ_API/mensagens/enviar" -H "Authorization: Bearer $AGZ_CHAVE" -
 **Propor uma ação** (o Richard aprova em 1 toque na tela Hoje). `justificativa` é obrigatória.
 
 ```bash
-curl -X POST "$AGZ_API/acoes-pendentes" -H "Authorization: Bearer $AGZ_CHAVE" -H "Content-Type: application/json" \
+curl -X POST "$CRB_API/acoes-pendentes" -H "Authorization: Bearer $CRB_CHAVE" -H "Content-Type: application/json" \
   -d '{"tipo":"mudar_estagio","lead_id":"<id>","payload":{"estagio":"perdido","motivo_perda":"Sem interesse"},"justificativa":"Respondeu que não quer contratar agora."}'
 ```
 
@@ -192,16 +192,16 @@ curl -X POST "$AGZ_API/acoes-pendentes" -H "Authorization: Bearer $AGZ_CHAVE" -H
 **Status da proposta** (`pendente`, `aprovada`, `rejeitada`, `expirada`; expira em 48 h):
 
 ```bash
-curl "$AGZ_API/acoes-pendentes/<id>" -H "Authorization: Bearer $AGZ_CHAVE"
+curl "$CRB_API/acoes-pendentes/<id>" -H "Authorization: Bearer $CRB_CHAVE"
 ```
 
 ### Tarefas
 
 ```bash
-curl "$AGZ_API/tarefas?abertas=true" -H "Authorization: Bearer $AGZ_CHAVE"
-curl -X POST "$AGZ_API/tarefas" -H "Authorization: Bearer $AGZ_CHAVE" -H "Content-Type: application/json" \
+curl "$CRB_API/tarefas?abertas=true" -H "Authorization: Bearer $CRB_CHAVE"
+curl -X POST "$CRB_API/tarefas" -H "Authorization: Bearer $CRB_CHAVE" -H "Content-Type: application/json" \
   -d '{"titulo":"Ligar para confirmar orçamento","vence_em":"2026-10-13T10:00:00-03:00","lead_id":"<id>"}'
-curl -X PATCH "$AGZ_API/tarefas/<id>" -H "Authorization: Bearer $AGZ_CHAVE" -H "Content-Type: application/json" \
+curl -X PATCH "$CRB_API/tarefas/<id>" -H "Authorization: Bearer $CRB_CHAVE" -H "Content-Type: application/json" \
   -d '{"concluida":true}'
 ```
 
@@ -210,7 +210,7 @@ curl -X PATCH "$AGZ_API/tarefas/<id>" -H "Authorization: Bearer $AGZ_CHAVE" -H "
 Tudo o que mudou desde um momento: leads criados ou alterados, interações, propostas decididas e vendas. Guarde `proximo_desde` e use na próxima chamada.
 
 ```bash
-curl "$AGZ_API/eventos?desde=2026-10-12T08:00:00-03:00" -H "Authorization: Bearer $AGZ_CHAVE"
+curl "$CRB_API/eventos?desde=2026-10-12T08:00:00-03:00" -H "Authorization: Bearer $CRB_CHAVE"
 # → { "dados": [{ "tipo": "interacao", "ocorreu_em": "...", "lead_id": "...", "dados": {...} }], "proximo_desde": "...", "tem_mais": false }
 ```
 
@@ -221,9 +221,9 @@ Cadastrados pelo Richard em **Configurações → API e agente → Webhooks** (U
 ```http
 POST https://seu-servidor/webhook
 Content-Type: application/json
-X-Agilize-Evento: lead.respondeu
-X-Agilize-Entrega: 5f0c...-uuid
-X-Agilize-Assinatura: sha256=9b1e...
+X-Cresbi-Evento: lead.respondeu
+X-Cresbi-Entrega: 5f0c...-uuid
+X-Cresbi-Assinatura: sha256=9b1e...
 
 {"dados": {"lead_id": "...", "empresa": "Ótica Visão", "estagio": "respondeu", ...}, "evento": "lead.respondeu", "ocorreu_em": "2026-10-12T14:03:11.52-03:00"}
 ```
@@ -231,10 +231,10 @@ X-Agilize-Assinatura: sha256=9b1e...
 - **Assinatura:** HMAC-SHA256 do corpo **exatamente como recebido** (bytes crus), com o segredo do webhook, em hexadecimal. Compare em tempo constante. Exemplo em Node:
   ```js
   const esperado = 'sha256=' + crypto.createHmac('sha256', SEGREDO).update(corpoCru).digest('hex')
-  const ok = crypto.timingSafeEqual(Buffer.from(esperado), Buffer.from(req.headers['x-agilize-assinatura']))
+  const ok = crypto.timingSafeEqual(Buffer.from(esperado), Buffer.from(req.headers['x-cresbi-assinatura']))
   ```
 - **Resposta:** devolva qualquer `2xx` em até 8 s. O processamento pesado vai depois.
-- **Novas tentativas:** até 3, após 1, 5 e 15 minutos. Use `X-Agilize-Entrega` para ignorar repetidas.
+- **Novas tentativas:** até 3, após 1, 5 e 15 minutos. Use `X-Cresbi-Entrega` para ignorar repetidas.
 - **Desativação:** depois de 10 falhas seguidas o webhook é desligado e aparece um aviso nas Configurações.
 
 ### Vendas e métricas
@@ -242,13 +242,13 @@ X-Agilize-Assinatura: sha256=9b1e...
 **Vendas por período e status** (escopo `leitura`). O agente consulta vendas mas não as registra; para isso, ele propõe `criar_venda`.
 
 ```bash
-curl "$AGZ_API/vendas?de=2026-10-01T00:00:00-03:00&status=pago" -H "Authorization: Bearer $AGZ_CHAVE"
+curl "$CRB_API/vendas?de=2026-10-01T00:00:00-03:00&status=pago" -H "Authorization: Bearer $CRB_CHAVE"
 ```
 
 **Resumo de métricas** (escopo `relatorios`). O padrão é do início do mês até agora.
 
 ```bash
-curl "$AGZ_API/metricas/resumo?de=2026-10-01T00:00:00-03:00&ate=2026-10-13T00:00:00-03:00" -H "Authorization: Bearer $AGZ_CHAVE"
+curl "$CRB_API/metricas/resumo?de=2026-10-01T00:00:00-03:00&ate=2026-10-13T00:00:00-03:00" -H "Authorization: Bearer $CRB_CHAVE"
 ```
 
 Resposta: `funil` (retrato atual por estágio, com quantidade e valor estimado), `taxa_resposta` (abordados no período e quantos responderam), `abordagens_por_dia`, `receita_periodo`, `receita_mes`, `receita_recorrente` (manutenções ativas), `motivos_perda` e `segmentos` (taxa de resposta por segmento). É a mesma função SQL que alimenta o Painel.

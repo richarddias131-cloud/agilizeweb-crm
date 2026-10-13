@@ -7,7 +7,7 @@ Passo a passo para colocar o CRM no ar. Faça na ordem. Cada fase nova pode acre
 ## Parte 1 — Supabase (banco e login)
 
 1. Entre em https://supabase.com e crie uma conta (pode usar o GitHub).
-2. Clique em **New project**. Nome: `agilizeweb-crm`. Região: **South America (São Paulo)**. Crie uma senha forte para o banco e guarde num gerenciador de senhas.
+2. Clique em **New project**. Nome: `cresbi-crm`. Região: **South America (São Paulo)**. Crie uma senha forte para o banco e guarde num gerenciador de senhas.
 3. Espere o projeto terminar de criar (1–2 minutos).
 4. Vá em **Authentication → Sign In / Providers**:
    - Deixe **Email** ligado.
@@ -15,7 +15,7 @@ Passo a passo para colocar o CRM no ar. Faça na ordem. Cada fase nova pode acre
    - Desligue **Confirm email** (opcional, facilita criar seu usuário).
 5. Vá em **Authentication → Users → Add user → Create new user**. Coloque seu e-mail e uma senha. Marque **Auto Confirm User**.
 6. Vá em **Authentication → URL Configuration** e em **Site URL** coloque:
-   `https://richarddias131-cloud.github.io/agilizeweb-crm/`
+   `https://richarddias131-cloud.github.io/cresbi-crm/`
 7. Vá em **Project Settings → API** (ou **Data API / API Keys**) e copie:
    - **Project URL** (ex.: `https://abcd1234.supabase.co`)
    - **anon public key** (a chave pública, começa com `eyJ...` ou `sb_publishable_...`)
@@ -30,12 +30,12 @@ Passo a passo para colocar o CRM no ar. Faça na ordem. Cada fase nova pode acre
 
 ## Parte 3 — GitHub (deploy automático)
 
-11. No repositório `agilizeweb-crm` no GitHub, vá em **Settings → Secrets and variables → Actions → New repository secret** e crie:
+11. No repositório `cresbi-crm` no GitHub, vá em **Settings → Secrets and variables → Actions → New repository secret** e crie:
     - `VITE_SUPABASE_URL` = o Project URL do passo 7
     - `VITE_SUPABASE_ANON_KEY` = a anon key do passo 7
 12. Vá em **Settings → Pages** e em **Source** escolha **GitHub Actions**.
 13. Vá em **Actions**, abra o workflow **Deploy no GitHub Pages** e clique em **Run workflow** (ou faça qualquer push na `main`).
-14. Quando ficar verde, abra https://richarddias131-cloud.github.io/agilizeweb-crm/ e entre com o e-mail e a senha do passo 5.
+14. Quando ficar verde, abra https://richarddias131-cloud.github.io/cresbi-crm/ e entre com o e-mail e a senha do passo 5.
 
 ## Parte 4 — Instalar como app (PWA)
 
@@ -51,7 +51,7 @@ Passo a passo para colocar o CRM no ar. Faça na ordem. Cada fase nova pode acre
     cp .env.example .env.local   # edite e cole a URL e a anon key
     npm run dev
     ```
-19. Abra o endereço que aparecer (ex.: `http://localhost:5173/agilizeweb-crm/`).
+19. Abra o endereço que aparecer (ex.: `http://localhost:5173/cresbi-crm/`).
 
 ## Parte 6 — API do Grok Bot *(vale a partir da Fase 4)*
 
@@ -78,16 +78,16 @@ Escolha **um** dos caminhos.
 
 23. Confira abrindo no navegador: `https://SEU_PROJECT_REF.supabase.co/functions/v1/api/v1/health`. Deve aparecer `{"status":"ok",...}`.
 
-> O `--no-verify-jwt` é obrigatório: o agente entra com a chave própria (`agz_...`), não com o login do Supabase. A função usa a `service_role` só por dentro. Ela nunca sai do Supabase e não vai para o agente.
+> O `--no-verify-jwt` é obrigatório: o agente entra com a chave própria (`crb_...`), não com o login do Supabase. A função usa a `service_role` só por dentro. Ela nunca sai do Supabase e não vai para o agente.
 
 ### Gerar a chave do Grok
 
 24. No CRM, abra **Configurações → API e agente → Nova chave**. Nome: `Grok Bot`. Escopos: `leitura`, `escrita` e `relatorios` (deixe `envio` desligado por enquanto).
-25. Copie a chave (`agz_...`) **na hora**: ela aparece uma única vez. Guarde no gerenciador de senhas.
+25. Copie a chave (`crb_...`) **na hora**: ela aparece uma única vez. Guarde no gerenciador de senhas.
 26. (Opcional) Teste tudo de uma vez no terminal (precisa do `jq`):
     ```bash
-    export AGZ_API="https://SEU_PROJECT_REF.supabase.co/functions/v1/api/v1"
-    export AGZ_CHAVE="agz_..."
+    export CRB_API="https://SEU_PROJECT_REF.supabase.co/functions/v1/api/v1"
+    export CRB_CHAVE="crb_..."
     bash scripts/testar-api.sh
     ```
     O script cria um lead de teste, prepara uma mensagem, registra uma nota, lê a fila e arquiva o lead.
@@ -96,7 +96,7 @@ Escolha **um** dos caminhos.
 
 27. No Grok Bot (ou na plataforma onde ele roda), cole como **prompt de sistema** o bloco de texto do arquivo `docs/AGENTE.md`.
 28. Cadastre as ferramentas (function calling) com o conteúdo de `docs/grok-tools.json`. São 23 ferramentas, uma por ação. Em cada uma, o campo `x-http` diz qual rota da API chamar.
-29. Configure o executor das ferramentas com a base da API, o header `Authorization: Bearer agz_...` e um `Idempotency-Key` (UUID) em cada `POST`. Os detalhes estão no topo do `docs/AGENTE.md`. Se preferir n8n ou Postman, importe o `docs/openapi.yaml`.
+29. Configure o executor das ferramentas com a base da API, o header `Authorization: Bearer crb_...` e um `Idempotency-Key` (UUID) em cada `POST`. Os detalhes estão no topo do `docs/AGENTE.md`. Se preferir n8n ou Postman, importe o `docs/openapi.yaml`.
 30. Peça ao Grok: "Leia a fila de hoje e me diga o que tem". As chamadas aparecem em **Configurações → API e agente → Registro do agente**, e as propostas dele aparecem no topo da tela **Hoje**, em "Para aprovar".
 
 31. (Opcional) **Webhooks:** se o Grok (ou o n8n) tiver um endereço para receber avisos, cadastre em **Configurações → API e agente → Webhooks**, escolha os eventos e use **Enviar teste**. Os webhooks usam as extensões `pg_net` e `pg_cron`, que a migration `20261012000007_webhooks.sql` liga sozinha. Se ela der erro de permissão, ative as duas em **Database → Extensions** no Supabase e rode a migration de novo.
